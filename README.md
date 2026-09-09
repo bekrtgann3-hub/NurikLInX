@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Realistic 3D PC Simulator ($4500)</title>
     <style>
+        * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden; /* Запрещает появление ненужных полос прокрутки */
+    margin: 0;
+}
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background: #050811; color: #fff; overflow: hidden; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; }
