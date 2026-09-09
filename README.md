@@ -62,6 +62,13 @@ body {
     <div class="controls-info">🖱️ ЛКМ — Вращение | ПКМ — Сдвиг | Колесико — Зум</div>
 
     <script>
+    window.addEventListener('resize', () => {
+    // Обновляем пропорции камеры
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    // Обновляем размер холста рендерера
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
         // --- 1. Сцена, Камера и Рендерер с постобработкой ---
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x050811, 0.02);
