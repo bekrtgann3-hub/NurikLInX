@@ -5,18 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Realistic 3D PC Simulator ($4500)</title>
     <style>
-        * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden; /* Запрещает появление ненужных полос прокрутки */
-    margin: 0;
-}
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background: #050811; color: #fff; overflow: hidden; }
         #canvas-container { width: 100vw; height: 100vh; position: absolute; }
@@ -62,13 +50,6 @@ body {
     <div class="controls-info">🖱️ ЛКМ — Вращение | ПКМ — Сдвиг | Колесико — Зум</div>
 
     <script>
-    window.addEventListener('resize', () => {
-    // Обновляем пропорции камеры
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    // Обновляем размер холста рендерера
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
         // --- 1. Сцена, Камера и Рендерер с постобработкой ---
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x050811, 0.02);
