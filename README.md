@@ -1,2 +1,530 @@
-# NurikLInX
-hardware
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Конфигуратор Сборки ПК</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: rgba(22, 30, 46, 0.85);
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --success-color: #10b981;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* 3D Canvas */
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Интерфейс поверх 3D */
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 25px;
+        }
+
+        .header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            padding: 15px 25px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            pointer-events: auto;
+            max-width: 450px;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* Боковая панель выбора */
+        .sidebar {
+            position: absolute;
+            right: 25px;
+            top: 25px;
+            bottom: 25px;
+            width: 380px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .step-indicator {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            max-height: calc(100vh - 220px);
+            padding-right: 5px;
+        }
+
+        .option-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .option-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-color);
+            transform: translateX(-3px);
+        }
+
+        .option-card.selected {
+            border-color: var(--accent-color);
+            background: rgba(59, 130, 246, 0.15);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .option-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .option-spec {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            margin-top: 2px;
+        }
+
+        .option-price {
+            font-weight: 700;
+            color: var(--success-color);
+            font-size: 0.9rem;
+        }
+
+        .footer-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-next {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-next:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-next:disabled {
+            background: #334155;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .btn-power {
+            background: var(--success-color);
+            color: white;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Подсказка управления 3D */
+        .controls-hint {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            padding: 10px 18px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            pointer-events: auto;
+        }
+    </style>
+    <!-- Three.js и OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div class="ui-overlay">
+        <div class="header">
+            <h1>🖥️ 3D Конфигуратор ПК</h1>
+            <p>Вращайте модель мышкой для полного обзора</p>
+        </div>
+
+        <div class="controls-hint">
+            🖱️ Левая кнопка — вращение | Колесико — зум
+        </div>
+
+        <div class="sidebar">
+            <div>
+                <div class="step-indicator" id="stepIndicator">Шаг 1 из 6</div>
+                <div class="step-title" id="stepTitle">Выберите Процессор (CPU)</div>
+                <div class="options-grid" id="optionsGrid">
+                    <!-- Заполняется динамически -->
+                </div>
+            </div>
+
+            <div class="footer-controls">
+                <button class="btn btn-next" id="nextBtn" disabled onclick="nextStep()">Далее ➔</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Настройка 3D Сцены (Three.js) ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x0b0f19, 0.08);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(3, 2, 4);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 + 0.1;
+
+        // Освещение
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 7);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        const caseLight = new THREE.PointLight(0x3b82f6, 0, 5); // Подсветка корпуса (RGB)
+        caseLight.position.set(0, 0, 0);
+        scene.add(caseLight);
+
+        // --- 2. Создание моделей деталей (Procedural 3D) ---
+        const parts = {};
+
+        // Корпус ПК (Case)
+        const caseGroup = new THREE.Group();
+        const caseGeo = new THREE.BoxGeometry(1.6, 2.2, 2.0);
+        const caseMat = new THREE.MeshStandardMaterial({ color: 0x111827, wireframe: false, transparent: true, opacity: 0.3 });
+        const pcCase = new THREE.Mesh(caseGeo, caseMat);
+        caseGroup.add(pcCase);
+
+        // Каркас корпуса
+        const frameGeo = new THREE.BoxGeometry(1.62, 2.22, 2.02);
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, wireframe: true });
+        caseGroup.add(new THREE.Mesh(frameGeo, frameMat));
+        scene.add(caseGroup);
+
+        // Материнская плата
+        const mbGeo = new THREE.BoxGeometry(0.1, 1.8, 1.4);
+        const mbMat = new THREE.MeshStandardMaterial({ color: 0x064e3b });
+        const motherboard = new THREE.Mesh(mbGeo, mbMat);
+        motherboard.position.set(-0.7, 0, 0);
+        caseGroup.add(motherboard);
+
+        // Создаем заготовки для компонентов
+        function createPartMesh(geo, color) {
+            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.5 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.visible = false;
+            caseGroup.add(mesh);
+            return mesh;
+        }
+
+        parts.cpu = createPartMesh(new THREE.BoxGeometry(0.05, 0.3, 0.3), 0x94a3b8);
+        parts.cpu.position.set(-0.63, 0.3, 0);
+
+        parts.cooler = createPartMesh(new THREE.BoxGeometry(0.3, 0.4, 0.4), 0x38bdf8);
+        parts.cooler.position.set(-0.45, 0.3, 0);
+
+        parts.ram = createPartMesh(new THREE.BoxGeometry(0.05, 0.4, 0.08), 0xec4899);
+        parts.ram.position.set(-0.63, 0.3, 0.3);
+
+        parts.ssd = createPartMesh(new THREE.BoxGeometry(0.02, 0.1, 0.3), 0xeab308);
+        parts.ssd.position.set(-0.63, -0.2, 0.2);
+
+        parts.gpu = createPartMesh(new THREE.BoxGeometry(0.8, 0.3, 1.1), 0x6366f1);
+        parts.gpu.position.set(-0.2, -0.3, 0);
+
+        parts.psu = createPartMesh(new THREE.BoxGeometry(0.6, 0.5, 0.8), 0x334155);
+        parts.psu.position.set(-0.4, -0.75, -0.4);
+
+
+        // --- 3. Данные шагов и вариантов (По 4 варианта!) ---
+        const steps = [
+            {
+                title: "Выберите Процессор (CPU)",
+                partKey: "cpu",
+                options: [
+                    { name: "Intel Core i5-13400F", spec: "10 ядер / 16 потоков", price: "$200" },
+                    { name: "AMD Ryzen 5 7600X", spec: "6 ядер / 12 потоков", price: "$240" },
+                    { name: "Intel Core i7-13700K", spec: "16 ядер / 24 потока", price: "$380" },
+                    { name: "AMD Ryzen 7 7800X3D", spec: "8 ядер / Топ для игр", price: "$450" }
+                ]
+            },
+            {
+                title: "Система охлаждения (Cooler)",
+                partKey: "cooler",
+                options: [
+                    { name: "DeepCool AG400", spec: "Воздушное / 220W TDP", price: "$30" },
+                    { name: "be quiet! Dark Rock 4", spec: "Тихое башенное", price: "$75" },
+                    { name: "NZXT Kraken 240", spec: "СВО Водяное 240мм", price: "$140" },
+                    { name: "ASUS ROG Strix LC III", spec: "СВО Premium RGB 360мм", price: "$220" }
+                ]
+            },
+            {
+                title: "Оперативная память (RAM)",
+                partKey: "ram",
+                options: [
+                    { name: "Kingston Fury 16GB", spec: "DDR5 5200MHz", price: "$65" },
+                    { name: "G.Skill Ripjaws 32GB", spec: "DDR5 6000MHz", price: "$110" },
+                    { name: "Corsair Vengeance 32GB", spec: "DDR5 RGB 6400MHz", price: "$140" },
+                    { name: "G.Skill Trident Z5 64GB", spec: "DDR5 Extreme 7200MHz", price: "$260" }
+                ]
+            },
+            {
+                title: "Накопитель (SSD M.2)",
+                partKey: "ssd",
+                options: [
+                    { name: "Kingston NV2 500GB", spec: "PCIe 4.0 / 3500 MB/s", price: "$45" },
+                    { name: "Samsung 980 1TB", spec: "PCIe 3.0 / 3500 MB/s", price: "$80" },
+                    { name: "WD Black SN850X 1TB", spec: "PCIe 4.0 / 7300 MB/s", price: "$110" },
+                    { name: "Samsung 990 PRO 2TB", spec: "Флагман / 7450 MB/s", price: "$180" }
+                ]
+            },
+            {
+                title: "Видеокарта (GPU)",
+                partKey: "gpu",
+                options: [
+                    { name: "NVIDIA RTX 4060 8GB", spec: "Базовый 1080p гейминг", price: "$300" },
+                    { name: "AMD Radeon RX 7700 XT", spec: "Отличный 1440p", price: "$420" },
+                    { name: "NVIDIA RTX 4070 Ti Super", spec: "Мощный 2K/4K гейминг", price: "$800" },
+                    { name: "NVIDIA RTX 4090 24GB", spec: "Максимальная мощность", price: "$1800" }
+                ]
+            },
+            {
+                title: "Блок питания (PSU)",
+                partKey: "psu",
+                options: [
+                    { name: "DeepCool PK650D", spec: "650W / 80+ Bronze", price: "$60" },
+                    { name: "Corsair RM750x", spec: "750W / 80+ Gold Modular", price: "$120" },
+                    { name: "be quiet! Straight Power 850W", spec: "850W Platinum", price: "$170" },
+                    { name: "ASUS ROG Thor 1000W", spec: "1000W Platinum OLED", price: "$320" }
+                ]
+            }
+        ];
+
+        let currentStep = 0;
+        let selectedOption = null;
+
+        // --- 4. Логика интерфейса ---
+        function renderStep() {
+            const step = steps[currentStep];
+            document.getElementById('stepIndicator').innerText = `Шаг ${currentStep + 1} из ${steps.length}`;
+            document.getElementById('stepTitle').innerText = step.title;
+
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+
+            step.options.forEach((opt, idx) => {
+                const card = document.createElement('div');
+                card.className = 'option-card';
+                card.innerHTML = `
+                    <div class="option-info">
+                        <div class="option-name">${opt.name}</div>
+                        <div class="option-spec">${opt.spec}</div>
+                    </div>
+                    <div class="option-price">${opt.price}</div>
+                `;
+                card.onclick = () => selectOption(card, opt);
+                grid.appendChild(card);
+            });
+
+            document.getElementById('nextBtn').disabled = true;
+        }
+
+        function selectOption(cardElement, option) {
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            selectedOption = option;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextStep() {
+            const step = steps[currentStep];
+            const mesh = parts[step.partKey];
+
+            // Анимация появления детали
+            mesh.visible = true;
+            mesh.scale.set(0, 0, 0);
+            
+            let scale = 0;
+            const anim = setInterval(() => {
+                scale += 0.1;
+                mesh.scale.set(scale, scale, scale);
+                if (scale >= 1) clearInterval(anim);
+            }, 20);
+
+            currentStep++;
+
+            if (currentStep < steps.length) {
+                renderStep();
+            } else {
+                showFinal();
+            }
+        }
+
+        function showFinal() {
+            document.getElementById('stepIndicator').innerText = "Сборка завершена!";
+            document.getElementById('stepTitle').innerText = "🎉 ПК полностью собран!";
+            document.getElementById('optionsGrid').innerHTML = `
+                <div style="color: var(--text-sub); font-size: 0.9rem; line-height: 1.5;">
+                    Все выбранные компоненты идеально совместимы и успешно смонтированы в корпус.
+                </div>
+            `;
+
+            const btn = document.getElementById('nextBtn');
+            btn.innerText = "⚡ Запустить ПК";
+            btn.className = "btn btn-power";
+            btn.disabled = false;
+            btn.onclick = powerOn;
+        }
+
+        function powerOn() {
+            // Эффект включения RGB подсветки в 3D
+            let intensity = 0;
+            const pwrAnim = setInterval(() => {
+                intensity += 0.2;
+                caseLight.intensity = intensity;
+                if (intensity >= 3) clearInterval(pwrAnim);
+            }, 50);
+
+            // Анимация плавного изменения цвета подсветки
+            let hue = 0;
+            setInterval(() => {
+                hue = (hue + 1) % 360;
+                caseLight.color.setHSL(hue / 360, 1, 0.5);
+            }, 30);
+
+            alert("🚀 Компьютер успешно запущен! Система охлаждения и RGB-подсветка работают на 100%.");
+        }
+
+        // --- 5. Анимационный цикл THREE.JS ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Плавное медленное вращение корпуса для эффекта демонстрации
+            caseGroup.rotation.y += 0.003;
+
+            renderer.render(scene, camera);
+        }
+
+        // Адаптивность при изменении размера окна
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Старт
+        renderStep();
+        animate();
+    </script>
+</body>
+</html>
