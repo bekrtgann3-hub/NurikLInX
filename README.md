@@ -6,14 +6,14 @@
     <title>3D Конфигуратор Сборки ПК Pro</title>
     <style>
         :root {
-            --bg-color: #05070a;
-            --panel-bg: rgba(10, 15, 26, 0.88);
-            --accent-color: #2563eb;
-            --accent-hover: #1d4ed8;
+            --bg-color: #1e293b;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
             --success-color: #10b981;
             --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --border-color: #1e293b;
+            --text-sub: #cbd5e1;
+            --border-color: #334155;
         }
 
         * {
@@ -25,7 +25,7 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            background: radial-gradient(circle at center, #334155 0%, #0f172a 100%);
             color: var(--text-main);
             overflow: hidden;
             width: 100vw;
@@ -93,7 +93,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         .step-indicator {
@@ -129,7 +129,7 @@
         }
 
         .option-card {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 12px 16px;
@@ -141,14 +141,14 @@
         }
 
         .option-card:hover {
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.12);
             border-color: var(--accent-color);
         }
 
         .option-card.selected {
             border-color: var(--accent-color);
-            background: rgba(37, 99, 235, 0.2);
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+            background: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
         }
 
         .option-info {
@@ -208,8 +208,8 @@
         }
 
         .btn-next:disabled {
-            background: #1e293b;
-            color: #475569;
+            background: #334155;
+            color: #64748b;
             cursor: not-allowed;
         }
 
@@ -250,7 +250,7 @@
     <div class="ui-overlay">
         <div class="header">
             <h1>🖥️ 3D Конфигуратор ПК</h1>
-            <p>Выбирайте компоненты и наблюдайте за изменением их вида</p>
+            <p>Выбирайте компоненты и рассматривайте сборку со всех сторон</p>
         </div>
 
         <div class="controls-hint">
@@ -280,12 +280,14 @@
         // --- 1. Сцена и Рендерер ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x05070a, 0.05);
+        
+        // Легкий туман для глубины (более светлого оттенка)
+        scene.fog = new THREE.FogExp2(0x1e293b, 0.03);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(3.2, 1.8, 3.8);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
@@ -296,51 +298,65 @@
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
-        // Освещение
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        // --- Усиленное Студийное Освещение ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
         scene.add(ambientLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-        dirLight.position.set(5, 8, 5);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
+        // Основной свет спереди-справа
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        mainLight.position.set(5, 8, 5);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
 
-        const caseLight = new THREE.PointLight(0x2563eb, 0, 4);
+        // Заполняющий свет сзади-слева (чтобы не было темных слепых зон)
+        const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.8);
+        fillLight.position.set(-5, 3, -5);
+        scene.add(fillLight);
+
+        // Внутренний подсвет корпуса (чтобы детали внутри отчетливо выделялись)
+        const innerLight = new THREE.PointLight(0xffffff, 1.2, 5);
+        innerLight.position.set(0, 0.2, 0.2);
+        scene.add(innerLight);
+
+        // Динамический RGB свет для финала
+        const caseLight = new THREE.PointLight(0x3b82f6, 0, 4);
         caseLight.position.set(0, 0, 0);
         scene.add(caseLight);
 
-        // --- 2. Генератор детализированного Черного Корпуса ---
+        // --- 2. Генератор Прозрачного Корпуса ---
         const caseGroup = new THREE.Group();
         scene.add(caseGroup);
 
-        function createBlackCase() {
+        function createOpenCase() {
             const group = new THREE.Group();
             
-            // Основной металлический корпус (Черная коробка)
-            const bodyMat = new THREE.MeshStandardMaterial({ color: 0x090a0f, roughness: 0.4, metalness: 0.8 });
-            
-            // Задняя панель
-            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.2, 2.0), bodyMat);
+            // Задняя стенка (темно-серая, но светлая внутри)
+            const backMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5, metalness: 0.5 });
+            const backPanel = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.2, 2.0), backMat);
             backPanel.position.set(-0.8, 0, 0);
             
-            // Верхняя крышка
-            const topPanel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 2.0), bodyMat);
+            // Верхняя панель
+            const topPanel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.05, 2.0), backMat);
             topPanel.position.set(0, 1.1, 0);
 
-            // Нижняя крышка и Кожух БП (PSU Shroud)
-            const psuShroud = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.6, 2.0), bodyMat);
-            psuShroud.position.set(0, -0.8, 0);
+            // Кожух блока питания (снизу)
+            const psuShroud = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 2.0), backMat);
+            psuShroud.position.set(0, -0.85, 0);
 
-            // Каркасные стойки
+            // Тонкие стильные рамки корпуса
             const frameGeo = new THREE.BoxGeometry(1.61, 2.21, 2.01);
-            const frameMat = new THREE.MeshStandardMaterial({ color: 0x171923, wireframe: true });
+            const frameMat = new THREE.MeshStandardMaterial({ color: 0x475569, wireframe: true });
             const frame = new THREE.Mesh(frameGeo, frameMat);
 
-            // Темное закаленное стекло спереди
-            const glassGeo = new THREE.BoxGeometry(1.6, 2.18, 0.02);
+            // Полностью прозрачное стекло (стеклянная панель)
+            const glassGeo = new THREE.BoxGeometry(1.6, 2.18, 0.01);
             const glassMat = new THREE.MeshPhysicalMaterial({
-                color: 0x111111, transparent: true, opacity: 0.35,
-                roughness: 0.1, transmission: 0.8, thickness: 0.5
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.12,
+                roughness: 0.05,
+                transmission: 0.95,
+                thickness: 0.1
             });
             const glass = new THREE.Mesh(glassGeo, glassMat);
             glass.position.set(0, 0, 1.0);
@@ -348,26 +364,24 @@
             group.add(backPanel, topPanel, psuShroud, frame, glass);
             return group;
         }
-        caseGroup.add(createBlackCase());
+        caseGroup.add(createOpenCase());
 
-        // Контейнер для динамически изменяемых компонентов
         const activeMeshes = {};
 
-        // --- 3. Генераторы Уникального Дизайна Деталей ---
+        // --- 3. Детализированные яркие компоненты ---
         const MeshBuilders = {
             mb: (type) => {
                 const group = new THREE.Group();
-                const pcbColor = type === 'white' ? 0xe2e8f0 : (type === 'taichi' ? 0x111827 : 0x0f172a);
+                const pcbColor = type === 'white' ? 0xf1f5f9 : (type === 'taichi' ? 0x1e293b : 0x0f172a);
                 const pcb = new THREE.Mesh(
                     new THREE.BoxGeometry(0.08, 1.8, 1.5),
-                    new THREE.MeshStandardMaterial({ color: pcbColor, roughness: 0.5 })
+                    new THREE.MeshStandardMaterial({ color: pcbColor, roughness: 0.4 })
                 );
 
-                // Радиаторы VRM
-                const heatsinkColor = type === 'taichi' ? 0xd97706 : 0x334155;
+                const heatsinkColor = type === 'taichi' ? 0xf59e0b : 0x64748b;
                 const heatsink = new THREE.Mesh(
                     new THREE.BoxGeometry(0.12, 0.5, 0.4),
-                    new THREE.MeshStandardMaterial({ color: heatsinkColor, metalness: 0.9, roughness: 0.2 })
+                    new THREE.MeshStandardMaterial({ color: heatsinkColor, metalness: 0.8, roughness: 0.2 })
                 );
                 heatsink.position.set(0.02, 0.55, -0.45);
                 
@@ -379,8 +393,7 @@
             cpu: (variant) => {
                 const group = new THREE.Group();
                 const isAMD = variant.includes('AMD');
-                // Текстура/Цвет крышки сокета
-                const capColor = isAMD ? 0xb45309 : 0x94a3b8;
+                const capColor = isAMD ? 0xd97706 : 0xcbd5e1;
                 const cpu = new THREE.Mesh(
                     new THREE.BoxGeometry(0.04, 0.35, 0.35),
                     new THREE.MeshStandardMaterial({ color: capColor, metalness: 0.9, roughness: 0.1 })
@@ -393,27 +406,24 @@
             cooler: (type) => {
                 const group = new THREE.Group();
                 if (type === 'air_small') {
-                    // Базовый воздушный кулер
-                    const rad = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.4, 0.4), new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8 }));
-                    const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.05), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+                    const rad = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.4, 0.4), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.8 }));
+                    const fan = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.05), new THREE.MeshStandardMaterial({ color: 0x3b82f6 }));
                     fan.rotation.z = Math.PI / 2;
                     fan.position.x = 0.15;
                     group.add(rad, fan);
                     group.position.set(-0.45, 0.3, 0);
                 } else if (type === 'air_big') {
-                    // Массивный двухбашенный кулер
-                    const rad1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.45), new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9 }));
+                    const rad1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.45), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8 }));
                     const rad2 = rad1.clone();
                     rad2.position.x = 0.18;
                     group.add(rad1, rad2);
                     group.position.set(-0.45, 0.3, 0);
                 } else if (type === 'water') {
-                    // СВО (Водяное охлаждение)
-                    const pump = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.1), new THREE.MeshStandardMaterial({ color: 0x2563eb, metalness: 0.5 }));
+                    const pump = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.1), new THREE.MeshStandardMaterial({ color: 0x60a5fa, metalness: 0.6 }));
                     pump.rotation.z = Math.PI / 2;
                     pump.position.set(-0.58, 0.3, 0);
                     
-                    const radiator = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.4), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+                    const radiator = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.1, 0.4), new THREE.MeshStandardMaterial({ color: 0x334155 }));
                     radiator.position.set(0, 1.0, 0);
                     
                     group.add(pump, radiator);
@@ -423,11 +433,11 @@
 
             ram: (count, isRGB) => {
                 const group = new THREE.Group();
-                const color = isRGB ? 0xec4899 : 0x334155;
+                const color = isRGB ? 0xf43f5e : 0x475569;
                 for(let i = 0; i < count; i++) {
                     const stick = new THREE.Mesh(
                         new THREE.BoxGeometry(0.04, 0.45, 0.06),
-                        new THREE.MeshStandardMaterial({ color: color, metalness: 0.6 })
+                        new THREE.MeshStandardMaterial({ color: color, metalness: 0.7 })
                     );
                     stick.position.set(0, 0, i * 0.09);
                     group.add(stick);
@@ -440,8 +450,8 @@
                 const group = new THREE.Group();
                 const h = hasHeatsink ? 0.06 : 0.02;
                 const mat = hasHeatsink 
-                    ? new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9 }) 
-                    : new THREE.MeshStandardMaterial({ color: 0x15803d });
+                    ? new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.8 }) 
+                    : new THREE.MeshStandardMaterial({ color: 0x16a34a });
                 
                 const ssd = new THREE.Mesh(new THREE.BoxGeometry(0.03, h, 0.35), mat);
                 group.add(ssd);
@@ -462,16 +472,15 @@
 
                 const body = new THREE.Mesh(
                     new THREE.BoxGeometry(length, height, width),
-                    new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.7, roughness: 0.2 })
+                    new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.8, roughness: 0.2 })
                 );
                 group.add(body);
 
-                // Генерация вентиляторов под размер карты
                 const spacing = width / fanCount;
                 for(let i = 0; i < fanCount; i++) {
                     const fan = new THREE.Mesh(
                         new THREE.CylinderGeometry(0.18, 0.18, 0.02),
-                        new THREE.MeshStandardMaterial({ color: 0x334155 })
+                        new THREE.MeshStandardMaterial({ color: 0x64748b })
                     );
                     fan.position.set(0, -height/2, -width/2 + spacing/2 + i*spacing);
                     group.add(fan);
@@ -485,7 +494,7 @@
                 const group = new THREE.Group();
                 const psu = new THREE.Mesh(
                     new THREE.BoxGeometry(0.65, 0.55, 0.85),
-                    new THREE.MeshStandardMaterial({ color: isModular ? 0x090a0f : 0x1e293b, metalness: 0.8 })
+                    new THREE.MeshStandardMaterial({ color: isModular ? 0x1e293b : 0x475569, metalness: 0.7 })
                 );
                 group.add(psu);
                 group.position.set(-0.4, -0.75, -0.4);
@@ -493,14 +502,14 @@
             }
         };
 
-        // --- 4. Список Шагов и Вариантов ---
+        // --- 4. Данные шагов ---
         const steps = [
             {
                 title: "Материнская плата",
                 partKey: "mb",
                 options: [
-                    { name: "GIGABYTE B760M DS3H", spec: "mATX / Строгий стиль", price: 140, type: "standard" },
-                    { name: "ASUS ROG STRIX Z790-A", spec: "ATX / Белые радиаторы", price: 380, type: "white" },
+                    { name: "GIGABYTE B760M DS3H", spec: "mATX / Тёмный стиль", price: 140, type: "standard" },
+                    { name: "ASUS ROG STRIX Z790-A", spec: "ATX / Светлые радиаторы", price: 380, type: "white" },
                     { name: "ASRock X670E Taichi", spec: "E-ATX / Золотые элементы", price: 490, type: "taichi" }
                 ]
             },
@@ -517,7 +526,7 @@
                 title: "Система охлаждения",
                 partKey: "cooler",
                 options: [
-                    { name: "DeepCool AG400", spec: "Компактная башня", price: 30, type: "air_small" },
+                    { name: "DeepCool AG400", spec: "Компактная башня с кулером", price: 30, type: "air_small" },
                     { name: "be quiet! Dark Rock Pro 4", spec: "Массивный двойной кулер", price: 90, type: "air_big" },
                     { name: "NZXT Kraken 240 RGB", spec: "Водяное охлаждение (СВО)", price: 160, type: "water" }
                 ]
@@ -526,34 +535,34 @@
                 title: "Оперативная память (RAM)",
                 partKey: "ram",
                 options: [
-                    { name: "Kingston Fury 16GB (2x8)", spec: "2 плашки / Черный радиатор", price: 65, count: 2, isRGB: false },
-                    { name: "Corsair Vengeance RGB 32GB (2x16)", spec: "2 плашки / Подсветка", price: 145, count: 2, isRGB: true },
-                    { name: "G.Skill Trident Z5 64GB (4x16)", spec: "4 плашки / RGB Экстрим", price: 260, count: 4, isRGB: true }
+                    { name: "Kingston Fury 16GB (2x8)", spec: "2 плашки / Строгий вид", price: 65, count: 2, isRGB: false },
+                    { name: "Corsair Vengeance RGB 32GB (2x16)", spec: "2 плашки / Яркая RGB", price: 145, count: 2, isRGB: true },
+                    { name: "G.Skill Trident Z5 64GB (4x16)", spec: "4 плашки / Флагман", price: 260, count: 4, isRGB: true }
                 ]
             },
             {
                 title: "Накопитель (SSD M.2)",
                 partKey: "ssd",
                 options: [
-                    { name: "Kingston NV2 1TB", spec: "Без радиатора", price: 65, hasHeatsink: false },
-                    { name: "Samsung 990 PRO 2TB", spec: "С мощным радиатором", price: 185, hasHeatsink: true }
+                    { name: "Kingston NV2 1TB", spec: "Зеленая плата без радиатора", price: 65, hasHeatsink: false },
+                    { name: "Samsung 990 PRO 2TB", spec: "Синий радиатор охлаждения", price: 185, hasHeatsink: true }
                 ]
             },
             {
                 title: "Видеокарта (GPU)",
                 partKey: "gpu",
                 options: [
-                    { name: "NVIDIA RTX 4060 8GB", spec: "2 Кулера / Компактная", price: 300, sizeCategory: "small" },
-                    { name: "NVIDIA RTX 4070 SUPER 12GB", spec: "3 Кулера / Средний размер", price: 600, sizeCategory: "large" },
-                    { name: "NVIDIA RTX 4090 24GB", spec: "Огромная 3-слотовая плата", price: 1850, sizeCategory: "extreme" }
+                    { name: "NVIDIA RTX 4060 8GB", spec: "2 Кулера / Компактный размер", price: 300, sizeCategory: "small" },
+                    { name: "NVIDIA RTX 4070 SUPER 12GB", spec: "3 Кулера / Средняя плата", price: 600, sizeCategory: "large" },
+                    { name: "NVIDIA RTX 4090 24GB", spec: "Огромный 3-слотовый флагман", price: 1850, sizeCategory: "extreme" }
                 ]
             },
             {
                 title: "Блок питания (PSU)",
                 partKey: "psu",
                 options: [
-                    { name: "DeepCool PK650D 650W", spec: "Стандартный корпус", price: 60, isModular: false },
-                    { name: "Corsair RM750x 750W", spec: "Черный Модульный", price: 125, isModular: true }
+                    { name: "DeepCool PK650D 650W", spec: "Классический БП", price: 60, isModular: false },
+                    { name: "Corsair RM750x 750W", spec: "Модульный премиум БП", price: 125, isModular: true }
                 ]
             }
         ];
@@ -561,9 +570,8 @@
         let currentStep = 0;
         let selectedConfig = [];
 
-        // --- 5. Обновление 3D Модели при выборе ---
+        // --- 5. Логика обновления 3D ---
         function update3DComponent(stepKey, option) {
-            // Удаляем старый меш, если он уже был создан
             if (activeMeshes[stepKey]) {
                 caseGroup.remove(activeMeshes[stepKey]);
             }
@@ -581,7 +589,6 @@
                 activeMeshes[stepKey] = newMesh;
                 caseGroup.add(newMesh);
 
-                // Анимация масштабирования при установке
                 newMesh.scale.set(0, 0, 0);
                 let scale = 0;
                 const anim = setInterval(() => {
@@ -592,7 +599,7 @@
             }
         }
 
-        // --- 6. Интерфейсная логика ---
+        // --- 6. Интерфейс ---
         function renderStep() {
             const step = steps[currentStep];
             document.getElementById('stepIndicator').innerText = `Шаг ${currentStep + 1} из ${steps.length}`;
@@ -625,7 +632,6 @@
             selectedConfig[currentStep] = option;
             updateTotalPrice();
 
-            // Динамически перерисовываем выбранный объект в 3D
             const stepKey = steps[currentStep].partKey;
             update3DComponent(stepKey, option);
 
@@ -679,7 +685,7 @@
             alert("🚀 Компьютер запущен! Подсветка и вентиляторы активированы.");
         }
 
-        // --- 7. Анимационный цикл THREE.JS ---
+        // --- 7. Рендер Анимация ---
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
