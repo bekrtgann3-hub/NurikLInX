@@ -149,7 +149,7 @@
 
 <div class="panel" id="title-panel">
   <h1>Кофейня в холле университета</h1>
-  <p>Компактная кофейня у одной несущей стены холла: барная стойка с рабочей зоной для бариста, две кофемашины, витрины с выпечкой и десертами, барные стулья у стойки — формат с обслуживанием, без самообслуживания.</p>
+  <p>Компактная кофейня у одной несущей стены холла: задняя рабочая стойка у стены с кофемашинами и ингредиентами, клиентская стойка с десертами и выпечкой, проход для бариста между ними, барные стулья у клиентской стойки — формат с обслуживанием, без самообслуживания.</p>
   <div class="dims">Ширина: 4 м · Длина: 3 м · Одна стена, вторая сторона открыта в холл</div>
 </div>
 
@@ -295,11 +295,15 @@
   var frontZ = CORRIDOR_LENGTH/2;
 
   // рабочая зона бариста и барная стойка (не самообслуживание)
-  var STAFF_DEPTH = 0.95;                                // место за стойкой, чтобы бариста мог(ли) свободно работать
-  var COUNTER_D = 0.5;                                   // компактная толщина стойки под короткую длину
-  var counterZ = backZ + STAFF_DEPTH + COUNTER_D/2;       // центр стойки по глубине
-  var counterFrontZ = counterZ + COUNTER_D/2;             // передняя грань стойки (к посетителям)
-  var baristaZ = backZ + STAFF_DEPTH*0.45;                // где стоят бариста в рабочей зоне
+  var BACK_COUNTER_D = 0.45;                               // глубина задней рабочей стойки у стены (оборудование, ингредиенты)
+  var backCounterZ = backZ + 0.08 + BACK_COUNTER_D/2;       // почти вплотную к задней стене
+  var backCounterFrontZ = backCounterZ + BACK_COUNTER_D/2;  // передняя грань задней стойки
+
+  var WORK_GAP = 0.75;                                     // проход для бариста между двумя стойками
+  var COUNTER_D = 0.5;                                     // толщина клиентской (фронтальной) стойки
+  var counterZ = backCounterFrontZ + WORK_GAP + COUNTER_D/2;  // центр клиентской стойки по глубине
+  var counterFrontZ = counterZ + COUNTER_D/2;               // передняя грань клиентской стойки (к посетителям)
+  var baristaZ = backCounterFrontZ + WORK_GAP/2;            // бариста работают в проходе между стойками
 
   var room = new THREE.Group();
   scene.add(room);
@@ -364,6 +368,33 @@
   }
   room.add(counter);
 
+  // ---------- задняя рабочая стойка у стены (оборудование, ингредиенты, кофемашины) ----------
+  var backCounter = new THREE.Group();
+  var backCounterBaseW = 3.2;
+  var backBase = new THREE.Mesh(new THREE.BoxGeometry(backCounterBaseW, counterH, BACK_COUNTER_D), woodMat);
+  backBase.position.set(0, counterH/2, backCounterZ);
+  backBase.castShadow = true; backBase.receiveShadow = true;
+  backCounter.add(backBase);
+  var backTop = new THREE.Mesh(new THREE.BoxGeometry(backCounterBaseW+0.06, 0.05, BACK_COUNTER_D+0.06), counterTopMat);
+  backTop.position.set(0, counterH+0.025, backCounterZ);
+  backTop.castShadow = true;
+  backCounter.add(backTop);
+  room.add(backCounter);
+
+  // ингредиенты и расходники (банки/канистры) на задней стойке
+  function buildIngredientJar(x, r, h, mat){
+    var jar = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 14), mat);
+    jar.position.set(x, counterH+0.05+h/2, backCounterZ+0.08);
+    jar.castShadow = true;
+    var lid = new THREE.Mesh(new THREE.CylinderGeometry(r*0.85, r*0.85, 0.015, 14), brassMat);
+    lid.position.set(x, counterH+0.05+h+0.008, backCounterZ+0.08);
+    return [jar, lid];
+  }
+  var jarMats = [creamMat, new THREE.MeshStandardMaterial({color:0x4a3527, roughness:0.6}), steelMat, new THREE.MeshStandardMaterial({color:0xd8c9a8, roughness:0.5})];
+  [ {x:0.0,r:0.06,h:0.2}, {x:0.42,r:0.07,h:0.24}, {x:0.86,r:0.055,h:0.17}, {x:1.3,r:0.08,h:0.28}, {x:1.55,r:0.05,h:0.15} ].forEach(function(j,i){
+    buildIngredientJar(j.x, j.r, j.h, jarMats[i%jarMats.length]).forEach(function(m){ room.add(m); });
+  });
+
   // кофемашина
   function buildCoffeeMachine(x){
     var g = new THREE.Group();
@@ -381,7 +412,7 @@
     gauge.rotation.x = Math.PI/2;
     gauge.position.set(0, counterH+0.06+0.34, 0.22);
     g.add(gauge);
-    g.position.set(x, 0, counterZ-0.05);
+    g.position.set(x, 0, backCounterZ-0.02);
     return g;
   }
   room.add(buildCoffeeMachine(-1.3));
@@ -534,7 +565,7 @@
   }
   var pendants = [];
   [ -0.9, 0.9 ].forEach(function(x){
-    var p = buildPendant(x, counterZ, true);
+    var p = buildPendant(x, backCounterZ, true);
     room.add(p); pendants.push(p);
   });
   [counterZ, 0.3, 0.9].forEach(function(z){
@@ -690,15 +721,15 @@
     g.rotation.y = rotY||0;
     return g;
   }
-  // бариста работают в зоне за стойкой (глубина STAFF_DEPTH),
+  // бариста работают в проходе между задней и клиентской стойками,
   // лицом к посетителям (в сторону входа, +Z)
   room.add(buildBarista(-0.9, baristaZ, 0));
   room.add(buildBarista(0.6, baristaZ, -0.15));
 
   // напольные светильники-споты (акцент у стойки)
   var spot = new THREE.SpotLight(0xffe3b0, 0.6, 6, Math.PI/6, 0.4);
-  spot.position.set(0, WALL_HEIGHT-0.1, counterZ+0.5);
-  spot.target.position.set(0, 1, counterZ);
+  spot.position.set(0, WALL_HEIGHT-0.1, backCounterZ+0.6);
+  spot.target.position.set(0, 1, backCounterZ);
   spot.castShadow = true;
   room.add(spot); room.add(spot.target);
 
