@@ -149,8 +149,8 @@
 
 <div class="panel" id="title-panel">
   <h1>Кофейня в холле университета</h1>
-  <p>Концепт компактной кофейни у одной несущей стены холла: стойка с бариста, витрина с выпечкой, барные места и мягкий свет создают уютную открытую точку отдыха между парами.</p>
-  <div class="dims">Ширина зоны: 4 м · Одна стена, вторая сторона открыта в холл</div>
+  <p>Компактная кофейня у одной несущей стены холла: барная стойка с рабочей зоной для бариста, две кофемашины, витрины с выпечкой и десертами, барные стулья у стойки — формат с обслуживанием, без самообслуживания.</p>
+  <div class="dims">Ширина: 4 м · Длина: 3 м · Одна стена, вторая сторона открыта в холл</div>
 </div>
 
 <div class="panel" id="legend">
@@ -195,7 +195,7 @@
   container.appendChild(renderer.domElement);
 
   // ---------- простое орбитальное управление (без внешних зависимостей) ----------
-  var spherical = { radius: 8.5, theta: Math.PI*0.32, phi: Math.PI*0.38 };
+  var spherical = { radius: 5, theta: Math.PI*0.32, phi: Math.PI*0.38 };
   var isDragging = false, lastX=0, lastY=0;
   var autoRotate = false;
 
@@ -288,11 +288,18 @@
 
   // ---------- геометрия помещения ----------
   var CORRIDOR_WIDTH = 4;   // между стенами
-  var CORRIDOR_LENGTH = 9;
+  var CORRIDOR_LENGTH = 3;
   var WALL_HEIGHT = 3;
   var halfW = CORRIDOR_WIDTH/2;
   var backZ = -CORRIDOR_LENGTH/2;
   var frontZ = CORRIDOR_LENGTH/2;
+
+  // рабочая зона бариста и барная стойка (не самообслуживание)
+  var STAFF_DEPTH = 0.95;                                // место за стойкой, чтобы бариста мог(ли) свободно работать
+  var COUNTER_D = 0.5;                                   // компактная толщина стойки под короткую длину
+  var counterZ = backZ + STAFF_DEPTH + COUNTER_D/2;       // центр стойки по глубине
+  var counterFrontZ = counterZ + COUNTER_D/2;             // передняя грань стойки (к посетителям)
+  var baristaZ = backZ + STAFF_DEPTH*0.45;                // где стоят бариста в рабочей зоне
 
   var room = new THREE.Group();
   scene.add(room);
@@ -336,23 +343,23 @@
 
   // ---------- стойка кофейни ----------
   var counter = new THREE.Group();
-  var counterBaseW = 3.2, counterD = 0.65, counterH = 1.05;
+  var counterBaseW = 3.2, counterD = COUNTER_D, counterH = 1.05;
   var base = new THREE.Mesh(new THREE.BoxGeometry(counterBaseW, counterH, counterD), woodMat);
-  base.position.set(0, counterH/2, backZ+0.45);
+  base.position.set(0, counterH/2, counterZ);
   base.castShadow = true; base.receiveShadow = true;
   counter.add(base);
   var top = new THREE.Mesh(new THREE.BoxGeometry(counterBaseW+0.08, 0.06, counterD+0.1), counterTopMat);
-  top.position.set(0, counterH+0.03, backZ+0.45);
+  top.position.set(0, counterH+0.03, counterZ);
   top.castShadow = true;
   counter.add(top);
   // латунная полоска-декор
   var strip = new THREE.Mesh(new THREE.BoxGeometry(counterBaseW-0.1, 0.03, 0.03), brassMat);
-  strip.position.set(0, 0.35, backZ+0.45+counterD/2-0.02);
+  strip.position.set(0, 0.35, counterZ+counterD/2-0.02);
   counter.add(strip);
   // деревянные панели-рейки на фасаде стойки
   for(var px=-counterBaseW/2+0.15; px<counterBaseW/2; px+=0.16){
     var slat = new THREE.Mesh(new THREE.BoxGeometry(0.06, counterH-0.1, 0.02), darkWoodMat);
-    slat.position.set(px, counterH/2, backZ+0.45+counterD/2+0.01);
+    slat.position.set(px, counterH/2, counterZ+counterD/2+0.01);
     counter.add(slat);
   }
   room.add(counter);
@@ -374,10 +381,11 @@
     gauge.rotation.x = Math.PI/2;
     gauge.position.set(0, counterH+0.06+0.34, 0.22);
     g.add(gauge);
-    g.position.set(x, 0, backZ+0.45-0.05);
+    g.position.set(x, 0, counterZ-0.05);
     return g;
   }
-  room.add(buildCoffeeMachine(-0.9));
+  room.add(buildCoffeeMachine(-1.3));
+  room.add(buildCoffeeMachine(-0.55));
 
   // витрина с выпечкой (стекло)
   function buildPastryCase(x){
@@ -395,19 +403,50 @@
     var shelf = new THREE.Mesh(new THREE.BoxGeometry(w-0.05,0.02,d-0.05), woodMat);
     shelf.position.y = counterH+0.06+0.15;
     g.add(shelf);
-    // выпечка (маленькие торы/сферы)
-    var pastryColors = [0xc9915a,0xdbb37a,0x9a5a34];
-    for(var i=0;i<4;i++){
-      var pMat = new THREE.MeshStandardMaterial({color:pastryColors[i%3], roughness:0.7});
-      var p = new THREE.Mesh(new THREE.SphereGeometry(0.05,10,8), pMat);
+    // выпечка и десерты (маленькие торы/сферы разных цветов — круассаны, эклеры, тарты)
+    var pastryColors = [0xc9915a,0xdbb37a,0x9a5a34,0x7a4030];
+    for(var i=0;i<5;i++){
+      var pMat = new THREE.MeshStandardMaterial({color:pastryColors[i%4], roughness:0.7});
+      var p = new THREE.Mesh(new THREE.SphereGeometry(0.048,10,8), pMat);
       p.scale.y = 0.6;
-      p.position.set(-w/2+0.1+i*0.15, counterH+0.06+0.18, 0);
+      p.position.set(-w/2+0.09+i*0.13, counterH+0.06+0.18, 0);
       g.add(p);
     }
-    g.position.set(x,0,backZ+0.45-0.02);
+    g.position.set(x,0,counterZ-0.02);
     return g;
   }
-  room.add(buildPastryCase(0.9));
+  room.add(buildPastryCase(1.0));
+
+  // отдельная витрина-стойка с десертами (двухъярусная — торты/пирожные)
+  function buildDessertStand(x){
+    var g = new THREE.Group();
+    var cakeColors = [0xf4ead9,0xc9915a,0x8a4a2e];
+    // нижний ярус
+    var tier1 = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.17,0.1,20), new THREE.MeshStandardMaterial({color:cakeColors[0], roughness:0.6}));
+    tier1.position.y = counterH+0.06+0.08;
+    g.add(tier1);
+    var icing1 = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.02,20), new THREE.MeshStandardMaterial({color:cakeColors[1], roughness:0.5}));
+    icing1.position.y = counterH+0.06+0.14;
+    g.add(icing1);
+    // ножка стенда
+    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.16,10), brassMat);
+    pole.position.y = counterH+0.06+0.22;
+    g.add(pole);
+    // верхний ярус — пирожные
+    var plate = new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.015,20), brassMat);
+    plate.position.y = counterH+0.06+0.30;
+    g.add(plate);
+    for(var i=0;i<3;i++){
+      var ang = (i/3)*Math.PI*2;
+      var cake = new THREE.Mesh(new THREE.SphereGeometry(0.045,10,8), new THREE.MeshStandardMaterial({color:cakeColors[i%3], roughness:0.65}));
+      cake.scale.y = 0.7;
+      cake.position.set(Math.cos(ang)*0.07, counterH+0.06+0.335, Math.sin(ang)*0.07);
+      g.add(cake);
+    }
+    g.position.set(x,0,counterZ+0.02);
+    return g;
+  }
+  room.add(buildDessertStand(0.35));
 
   // стопки стаканов/чашек на стойке
   function buildCupStack(x,z){
@@ -420,8 +459,8 @@
     g.position.set(x,0,z);
     return g;
   }
-  room.add(buildCupStack(-1.4, backZ+0.35));
-  room.add(buildCupStack(1.4, backZ+0.55));
+  room.add(buildCupStack(-1.5, counterZ-0.03));
+  room.add(buildCupStack(1.5, counterZ+0.03));
 
   // полки над стойкой
   function buildShelfUnit(){
@@ -494,32 +533,16 @@
     return g;
   }
   var pendants = [];
-  [ -0.7, 0.7 ].forEach(function(x){
-    var p = buildPendant(x, backZ+0.6, true);
+  [ -0.9, 0.9 ].forEach(function(x){
+    var p = buildPendant(x, counterZ, true);
     room.add(p); pendants.push(p);
   });
-  [-1, 0.3, 2].forEach(function(z){
+  [counterZ, 0.3, 0.9].forEach(function(z){
     var p = buildPendant(0, z, true);
     room.add(p); pendants.push(p);
   });
 
-  // барные столы + стулья вдоль стен
-  function buildBarTable(x,z, rotY){
-    var g = new THREE.Group();
-    var top = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,0.04,24), woodMat);
-    top.position.y = 1.05;
-    top.castShadow = true;
-    g.add(top);
-    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.05,1.0,12), blackMat);
-    pole.position.y = 0.55;
-    g.add(pole);
-    var base2 = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,0.03,20), blackMat);
-    base2.position.y = 0.02;
-    g.add(base2);
-    g.position.set(x,0,z);
-    g.rotation.y = rotY||0;
-    return g;
-  }
+  // барные стулья прямо у стойки — гости сидят лицом к бариста (посадка у бара, без отдельных столов)
   function buildStool(x,z, rotY){
     var g = new THREE.Group();
     var seat = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.04,20), darkWoodMat);
@@ -540,17 +563,9 @@
     return g;
   }
 
-  var tableSpots = [
-    {x:-halfW+0.45, z: -0.6},
-    {x:-halfW+0.45, z: 1.6},
-    {x: halfW-0.45, z: -0.6},
-    {x: halfW-0.45, z: 1.6}
-  ];
-  tableSpots.forEach(function(s){
-    room.add(buildBarTable(s.x, s.z));
-    var side = s.x<0 ? 1 : -1;
-    room.add(buildStool(s.x+side*0.4, s.z-0.25));
-    room.add(buildStool(s.x+side*0.4, s.z+0.25));
+  var stoolXs = [-1.3, -0.65, 0, 0.65, 1.3];
+  stoolXs.forEach(function(sx){
+    room.add(buildStool(sx, counterFrontZ+0.38));
   });
 
   // растения в кадках у входа
@@ -576,7 +591,6 @@
   }
   room.add(buildPlant(-halfW+0.35, frontZ-0.5));
   room.add(buildPlant(halfW-0.35, frontZ-0.5));
-  room.add(buildPlant(-halfW+0.3, backZ+1.6));
 
   // гирлянда светящихся точек вдоль потолка (создаёт уют)
   var stringGroup = new THREE.Group();
@@ -676,13 +690,15 @@
     g.rotation.y = rotY||0;
     return g;
   }
-  // бариста стоит за стойкой, лицом к посетителям (в сторону входа)
-  room.add(buildBarista(-0.9, backZ+0.18, Math.PI));
+  // бариста работают в зоне за стойкой (глубина STAFF_DEPTH),
+  // лицом к посетителям (в сторону входа, +Z)
+  room.add(buildBarista(-0.9, baristaZ, 0));
+  room.add(buildBarista(0.6, baristaZ, -0.15));
 
   // напольные светильники-споты (акцент у стойки)
   var spot = new THREE.SpotLight(0xffe3b0, 0.6, 6, Math.PI/6, 0.4);
-  spot.position.set(0, WALL_HEIGHT-0.1, backZ+1);
-  spot.target.position.set(0, 1, backZ+0.4);
+  spot.position.set(0, WALL_HEIGHT-0.1, counterZ+0.5);
+  spot.target.position.set(0, 1, counterZ);
   spot.castShadow = true;
   room.add(spot); room.add(spot.target);
 
@@ -737,17 +753,17 @@
   });
   document.getElementById('btn-front').addEventListener('click', function(){
     clearActive(); this.classList.add('active');
-    spherical.theta = 0; spherical.phi = Math.PI*0.42; spherical.radius = 7.5;
-    target.set(0,1.3,backZ+1); updateCameraFromSpherical();
+    spherical.theta = 0; spherical.phi = Math.PI*0.42; spherical.radius = 4.5;
+    target.set(0,1.3,counterZ); updateCameraFromSpherical();
   });
   document.getElementById('btn-top').addEventListener('click', function(){
     clearActive(); this.classList.add('active');
-    spherical.theta = 0.001; spherical.phi = 0.2; spherical.radius = 10;
+    spherical.theta = 0.001; spherical.phi = 0.2; spherical.radius = 5.5;
     target.set(0,0,0); updateCameraFromSpherical();
   });
   document.getElementById('btn-side').addEventListener('click', function(){
     clearActive(); this.classList.add('active');
-    spherical.theta = Math.PI/2; spherical.phi = Math.PI*0.4; spherical.radius = 8;
+    spherical.theta = Math.PI/2; spherical.phi = Math.PI*0.4; spherical.radius = 4.5;
     target.set(0,1.2,0); updateCameraFromSpherical();
   });
   var autoBtn = document.getElementById('btn-auto');
