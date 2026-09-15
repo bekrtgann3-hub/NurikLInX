@@ -3,834 +3,2597 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Кофейня в холле университета — 3D проект</title>
+<title>Hardware Builder — Собери свой ПК</title>
+
 <style>
-  :root{
-    --espresso:#2b1c14;
-    --espresso-2:#3e2b1f;
-    --cream:#efe4d3;
-    --brass:#b8874f;
-    --sage:#7c8a6b;
-    --terracotta:#a85c37;
-    --panel-bg: rgba(20,13,9,0.72);
-  }
-  *{box-sizing:border-box;}
-  html,body{
-    margin:0; padding:0; width:100%; height:100%;
-    background:var(--espresso);
-    font-family: 'Georgia', 'Iowan Old Style', serif;
-    overflow:hidden;
-  }
-  #scene-container{
-    position:absolute; inset:0;
-  }
-  canvas{ display:block; touch-action:none; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-  .panel{
-    position:absolute;
-    background:var(--panel-bg);
-    backdrop-filter: blur(6px);
-    border:1px solid rgba(184,135,79,0.35);
-    color:var(--cream);
-    border-radius:2px;
-  }
+body {
+    font-family: Arial, sans-serif;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(50,80,160,.18), transparent 30%),
+        radial-gradient(circle at 80% 70%, rgba(120,40,180,.15), transparent 30%),
+        #070910;
+    color: #fff;
+    min-height: 100vh;
+}
 
-  #title-panel{
-    top:22px; left:22px;
-    padding:18px 22px;
-    max-width:330px;
-  }
-  #title-panel h1{
-    margin:0 0 6px 0;
-    font-size:22px;
-    font-weight:600;
-    letter-spacing:0.3px;
-    color:#f4ead9;
-  }
-  #title-panel p{
-    margin:0;
-    font-size:13.5px;
-    line-height:1.55;
-    color:#d8c9b3;
-    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  }
-  #title-panel .dims{
-    margin-top:10px;
-    padding-top:10px;
-    border-top:1px solid rgba(184,135,79,0.3);
-    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-    font-size:12.5px;
-    color:var(--brass);
-  }
+/* ================= HEADER ================= */
 
-  #controls-panel{
-    bottom:22px; left:22px;
-    padding:12px 14px;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    max-width:280px;
-    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  }
-  #controls-panel button{
-    background:transparent;
-    border:1px solid rgba(184,135,79,0.5);
-    color:var(--cream);
-    padding:7px 12px;
-    font-size:12px;
-    border-radius:2px;
-    cursor:pointer;
-    transition: background 0.2s, border-color 0.2s;
+header {
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 35px;
+    background: rgba(8,10,18,.95);
+    border-bottom: 1px solid #252b3b;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: #55b7ff;
+}
+
+.tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.tab {
+    border: 1px solid #30384d;
+    background: #101522;
+    color: #aab4c8;
+    padding: 12px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.tab:hover {
+    border-color: #55b7ff;
+    color: white;
+}
+
+.tab.active {
+    background: #55b7ff;
+    color: #06101a;
+    font-weight: bold;
+}
+
+/* ================= PAGES ================= */
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* ================= GAME HEADER ================= */
+
+.game-head {
+    padding: 25px 35px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.game-title h1 {
+    font-size: 29px;
+    margin-bottom: 6px;
+}
+
+.game-title p {
+    color: #8e98ad;
+}
+
+.budget-box {
+    min-width: 300px;
+    padding: 15px 20px;
+    border: 1px solid #293248;
+    border-radius: 14px;
+    background: linear-gradient(145deg,#101624,#0b0e17);
+}
+
+.budget-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.budget-label {
+    color: #8e98ad;
+}
+
+.budget-value {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.budget-value.good {
+    color: #55e6a5;
+}
+
+.budget-value.bad {
+    color: #ff6577;
+}
+
+.budget-line {
+    height: 8px;
+    background: #1e2534;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.budget-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg,#55b7ff,#8b65ff);
+    transition: .3s;
+}
+
+/* ================= MAIN ================= */
+
+.game {
+    display: grid;
+    grid-template-columns: minmax(450px, 1.05fr) minmax(500px, .95fr);
+    gap: 25px;
+    padding: 15px 35px 35px;
+}
+
+/* ================= PC AREA ================= */
+
+.pc-area {
+    background: linear-gradient(145deg,#0d111c,#080a10);
+    border: 1px solid #252d40;
+    border-radius: 20px;
+    min-height: 700px;
+    padding: 25px;
+    position: relative;
+    overflow: hidden;
+}
+
+.pc-area::before {
+    content: "";
+    position: absolute;
+    width: 350px;
+    height: 350px;
+    border-radius: 50%;
+    background: rgba(70,130,255,.07);
+    filter: blur(70px);
+    top: 150px;
+    left: 100px;
+}
+
+.pc-title {
+    text-align: center;
+    color: #8994aa;
+    margin-bottom: 10px;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+/* ================= CASE ================= */
+
+.pc-case {
+    width: 370px;
+    height: 575px;
+    margin: 20px auto 0;
+    position: relative;
+    border: 4px solid #4a5265;
+    border-radius: 17px;
+    background: linear-gradient(120deg,#171b27,#0c0f16);
+    box-shadow:
+        0 0 0 5px #080a0f,
+        0 0 40px rgba(0,0,0,.8);
+}
+
+/* glass */
+.pc-case::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    width: 245px;
+    height: 551px;
+    border: 2px solid #354158;
+    border-radius: 10px;
+    background:
+        linear-gradient(115deg,rgba(255,255,255,.07),transparent 30%),
+        rgba(30,45,65,.16);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* front panel */
+.front-panel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 92px;
+    height: 100%;
+    background: linear-gradient(#151a26,#0b0e14);
+    border-left: 1px solid #30384a;
+    border-radius: 0 13px 13px 0;
+}
+
+.front-panel::after {
+    content: "";
+    position: absolute;
+    top: 40px;
+    left: 20px;
+    width: 50px;
+    height: 420px;
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            #242b3b 0px,
+            #242b3b 4px,
+            transparent 4px,
+            transparent 12px
+        );
+    opacity: .55;
+}
+
+/* power button */
+.power-button {
+    position: absolute;
+    right: 27px;
+    top: 17px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #657087;
+    z-index: 20;
+}
+
+.power-button::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 16px;
+    border: 2px solid #76849c;
+    border-top-color: transparent;
+    border-radius: 50%;
+    left: 9px;
+    top: 7px;
+}
+
+/* ================= COMPONENT POSITIONS ================= */
+
+.part {
+    position: absolute;
+    opacity: 0;
+    transform: scale(.7);
+    transition: .45s cubic-bezier(.2,.8,.2,1);
+    z-index: 5;
+}
+
+.part.installed {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* motherboard */
+.motherboard {
+    width: 220px;
+    height: 330px;
+    left: 20px;
+    top: 100px;
+    border-radius: 5px;
+    background:
+        linear-gradient(90deg,transparent 48%,rgba(80,120,80,.4) 49%,transparent 51%),
+        linear-gradient(0deg,transparent 48%,rgba(80,120,80,.4) 49%,transparent 51%),
+        #152a25;
+    border: 2px solid #4e715f;
+    box-shadow: inset 0 0 20px rgba(0,0,0,.7);
+}
+
+.motherboard .socket {
+    position: absolute;
+    left: 65px;
+    top: 45px;
+    width: 82px;
+    height: 82px;
+    background: #68717b;
+    border: 7px solid #343b43;
+    box-shadow: inset 0 0 0 5px #1a1d21;
+}
+
+.motherboard .slots {
+    position: absolute;
+    right: 17px;
+    top: 40px;
+    display: flex;
+    gap: 5px;
+}
+
+.motherboard .slot {
+    width: 9px;
+    height: 125px;
+    background: #121923;
+    border: 1px solid #536078;
+}
+
+.motherboard .pcie {
+    position: absolute;
+    left: 20px;
+    width: 175px;
+    height: 12px;
+    background: #101720;
+    border: 1px solid #506174;
+}
+
+.motherboard .pcie:nth-child(1) {
+    top: 160px;
+}
+
+.motherboard .pcie:nth-child(2) {
+    top: 195px;
+}
+
+.motherboard .heatsink {
+    position: absolute;
+    width: 40px;
+    height: 55px;
+    background: linear-gradient(90deg,#505963,#252b31);
+    right: 18px;
+    bottom: 35px;
+}
+
+/* CPU */
+.cpu {
+    width: 70px;
+    height: 70px;
+    left: 96px;
+    top: 144px;
+    z-index: 8;
+    background: #b7bdc4;
+    border: 7px solid #747b84;
+    box-shadow: 0 0 18px rgba(255,255,255,.18);
+}
+
+.cpu::before {
+    content: "CPU";
+    position: absolute;
+    inset: 12px;
+    background: #4b5158;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* RAM */
+.ram {
+    width: 12px;
+    height: 130px;
+    top: 142px;
+    background: linear-gradient(#303b50,#10151e);
+    border: 1px solid #73809a;
+    z-index: 7;
+    box-shadow: 0 0 12px rgba(80,170,255,.4);
+}
+
+.ram::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 1px;
+    width: 8px;
+    height: 5px;
+    background: #c5a64b;
+}
+
+.ram1 { left: 161px; }
+.ram2 { left: 177px; }
+.ram3 { left: 193px; }
+.ram4 { left: 209px; }
+
+/* GPU */
+.gpu {
+    width: 195px;
+    height: 82px;
+    left: 34px;
+    top: 265px;
+    border-radius: 7px;
+    background: linear-gradient(#353d4d,#161b25);
+    border: 2px solid #68758c;
+    z-index: 9;
+    box-shadow: 0 8px 20px rgba(0,0,0,.6);
+}
+
+.gpu .fan {
+    position: absolute;
+    top: 14px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background:
+        repeating-conic-gradient(#596273 0 15deg,#242a35 15deg 30deg);
+    border: 4px solid #11151d;
+}
+
+.gpu .fan::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #8c96a8;
+    border-radius: 50%;
+    left: 14px;
+    top: 14px;
+}
+
+.gpu .fan:nth-child(1) { left: 18px; }
+.gpu .fan:nth-child(2) { left: 74px; }
+.gpu .fan:nth-child(3) { left: 130px; }
+
+/* SSD */
+.ssd {
+    width: 115px;
+    height: 28px;
+    left: 75px;
+    top: 220px;
+    background: linear-gradient(90deg,#222b3c,#58687e);
+    border: 2px solid #8998aa;
+    border-radius: 3px;
+    z-index: 8;
+}
+
+.ssd::after {
+    content: "NVMe";
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    font-size: 9px;
+    color: #cbd5e4;
+}
+
+/* COOLER */
+.cooler {
+    width: 110px;
+    height: 110px;
+    left: 81px;
+    top: 126px;
+    border-radius: 50%;
+    background:
+        repeating-conic-gradient(
+            #777f8b 0deg 15deg,
+            #2c323a 15deg 30deg
+        );
+    border: 9px solid #343b46;
+    z-index: 10;
+    box-shadow: 0 0 15px rgba(80,160,255,.25);
+}
+
+.cooler::after {
+    content: "";
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1c232e;
+    border: 5px solid #778397;
+    left: 30px;
+    top: 30px;
+}
+
+/* PSU */
+.psu {
+    width: 100px;
+    height: 120px;
+    left: 275px;
+    bottom: 18px;
+    background: linear-gradient(145deg,#303746,#11151d);
+    border: 2px solid #5e697d;
+    z-index: 6;
+}
+
+.psu::before {
+    content: "";
+    position: absolute;
+    width: 62px;
+    height: 62px;
+    border: 5px dotted #8994a5;
+    border-radius: 50%;
+    left: 17px;
+    top: 16px;
+}
+
+.psu::after {
+    content: "POWER";
+    position: absolute;
+    font-size: 9px;
+    left: 29px;
+    bottom: 20px;
+    color: #9ba7ba;
+}
+
+/* CASE fans */
+.case-fans {
+    position: absolute;
+    right: 105px;
+    top: 105px;
+    z-index: 4;
+}
+
+.case-fan {
+    width: 55px;
+    height: 55px;
+    margin-bottom: 18px;
+    border-radius: 50%;
+    border: 3px solid #414b5f;
+    background:
+        repeating-conic-gradient(#263142 0 20deg,#10151e 20deg 40deg);
+}
+
+/* cables */
+.cable {
+    position: absolute;
+    width: 70px;
+    height: 5px;
+    background: #111;
+    border-radius: 10px;
+    z-index: 11;
+}
+
+.c1 {
+    left: 215px;
+    top: 205px;
+    transform: rotate(25deg);
+}
+
+.c2 {
+    left: 210px;
+    top: 335px;
+    transform: rotate(-20deg);
+}
+
+/* labels */
+.part-label {
+    position: absolute;
+    background: rgba(0,0,0,.8);
+    border: 1px solid #3e4a61;
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: 9px;
+    opacity: 0;
+    transition: .3s;
+    z-index: 20;
+}
+
+.pc-case:hover .part.installed + .part-label {
+    opacity: 1;
+}
+
+/* ================= RIGHT PANEL ================= */
+
+.panel {
+    min-width: 0;
+}
+
+.step-card {
+    background: linear-gradient(145deg,#111624,#0b0e16);
+    border: 1px solid #283146;
+    border-radius: 20px;
+    padding: 23px;
+}
+
+.step-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.step-number {
+    color: #55b7ff;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.step-title {
+    font-size: 25px;
+}
+
+.step-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    background: #182133;
+    font-size: 25px;
+}
+
+.description {
+    color: #a2acc0;
+    line-height: 1.55;
+    margin-bottom: 15px;
+}
+
+.why {
+    padding: 13px 15px;
+    background: rgba(65,145,255,.08);
+    border-left: 3px solid #55b7ff;
+    border-radius: 7px;
+    color: #c8d4e9;
+    margin-bottom: 20px;
+    line-height: 1.45;
+}
+
+.why strong {
+    color: #55b7ff;
+}
+
+/* ================= OPTIONS ================= */
+
+.options-title {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.options-title span {
+    color: #7f899c;
+    font-size: 13px;
+}
+
+.options {
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 10px;
+    max-height: 385px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.options::-webkit-scrollbar {
+    width: 5px;
+}
+
+.options::-webkit-scrollbar-thumb {
+    background: #354058;
+    border-radius: 10px;
+}
+
+.option {
+    position: relative;
+    border: 1px solid #293348;
+    border-radius: 13px;
+    padding: 14px;
+    background: #0e131f;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.option:hover {
+    transform: translateY(-2px);
+    border-color: #4c9fe0;
+    background: #111a2a;
+}
+
+.option.selected {
+    border-color: #55b7ff;
+    box-shadow: 0 0 0 1px #55b7ff inset;
+    background: #121e31;
+}
+
+.option.disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+.option.disabled:hover {
+    transform: none;
+    border-color: #293348;
+    background: #0e131f;
+}
+
+.tier {
+    display: inline-block;
+    font-size: 9px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: #202a3b;
+    color: #91a3bd;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.tier.premium {
+    background: #302744;
+    color: #c4a4ff;
+}
+
+.tier.ultra {
+    background: #402d25;
+    color: #ffc08c;
+}
+
+.option-name {
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.spec {
+    color: #7e899e;
+    font-size: 11px;
+    line-height: 1.4;
+    min-height: 32px;
+}
+
+.price {
+    color: #55e6a5;
+    font-size: 17px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.selected-mark {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    color: #55e6a5;
+    opacity: 0;
+}
+
+.option.selected .selected-mark {
+    opacity: 1;
+}
+
+/* ================= NAVIGATION ================= */
+
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+button {
     font-family: inherit;
-  }
-  #controls-panel button:hover{
-    background:rgba(184,135,79,0.22);
-    border-color:var(--brass);
-  }
-  #controls-panel button.active{
-    background:var(--brass);
-    color:var(--espresso);
-    border-color:var(--brass);
-  }
+}
 
-  #hint{
-    position:absolute;
-    bottom:22px; right:22px;
-    padding:10px 14px;
-    font-size:12px;
-    color:#c9b8a0;
-    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-    max-width:200px;
-    text-align:right;
-    line-height:1.5;
-  }
+.nav-btn {
+    border: 1px solid #303a51;
+    border-radius: 10px;
+    padding: 13px 20px;
+    background: #111724;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
 
-  #legend{
-    top:22px; right:22px;
-    padding:14px 16px;
-    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-    font-size:12px;
-    color:#d8c9b3;
-    line-height:2;
-  }
-  #legend .dot{
-    display:inline-block;
-    width:9px; height:9px;
-    border-radius:50%;
-    margin-right:8px;
-  }
+.nav-btn:hover {
+    border-color: #55b7ff;
+}
 
-  #loading{
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    background:var(--espresso);
-    color:var(--cream);
-    font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-    font-size:14px;
-    letter-spacing:1px;
-    z-index:10;
-    transition: opacity 0.6s ease;
-  }
+.nav-btn.primary {
+    background: #55b7ff;
+    color: #07111c;
+    border-color: #55b7ff;
+}
 
-  @media (max-width: 640px){
-    #legend{ display:none; }
-    #title-panel{ max-width: 78vw; padding:14px 16px; }
-    #title-panel h1{ font-size:18px; }
-    #hint{ display:none; }
-    #controls-panel{ max-width: 60vw; }
-  }
+.nav-btn:disabled {
+    opacity: .35;
+    cursor: not-allowed;
+}
+
+/* ================= BUILD SUMMARY ================= */
+
+.summary {
+    margin-top: 15px;
+    background: #0b0f18;
+    border: 1px solid #252e42;
+    border-radius: 15px;
+    padding: 15px;
+}
+
+.summary h3 {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.summary-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    color: #7f8ba1;
+    font-size: 11px;
+}
+
+.summary-item span:last-child {
+    color: #c6d0df;
+}
+
+/* ================= FINAL ================= */
+
+.final {
+    display: none;
+    text-align: center;
+    padding: 35px;
+    background: linear-gradient(145deg,#101827,#0b1019);
+    border: 1px solid #32405a;
+    border-radius: 20px;
+}
+
+.final.show {
+    display: block;
+}
+
+.final-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+}
+
+.final h2 {
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.final p {
+    color: #8f9aae;
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 10px;
+    margin: 25px 0;
+}
+
+.result-box {
+    padding: 15px;
+    background: #111827;
+    border: 1px solid #29354a;
+    border-radius: 10px;
+}
+
+.result-box small {
+    display: block;
+    color: #78859b;
+    margin-bottom: 7px;
+}
+
+.result-box strong {
+    font-size: 20px;
+}
+
+.score {
+    font-size: 25px;
+    color: #55e6a5;
+    margin-bottom: 20px;
+}
+
+.power-btn {
+    border: 0;
+    border-radius: 12px;
+    padding: 15px 30px;
+    background: linear-gradient(90deg,#55b7ff,#8b65ff);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.power-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* ================= POWER EFFECT ================= */
+
+.pc-case.powered {
+    animation: pcGlow 1.5s infinite alternate;
+}
+
+.pc-case.powered .case-fan {
+    animation: spin 1s linear infinite;
+    box-shadow: 0 0 15px rgba(70,160,255,.7);
+}
+
+.pc-case.powered .gpu .fan {
+    animation: spin 1s linear infinite;
+}
+
+.pc-case.powered .ram {
+    box-shadow:
+        0 0 10px #55b7ff,
+        0 0 20px #8b65ff;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pcGlow {
+    from {
+        box-shadow:
+            0 0 0 5px #080a0f,
+            0 0 30px rgba(70,130,255,.15);
+    }
+    to {
+        box-shadow:
+            0 0 0 5px #080a0f,
+            0 0 60px rgba(80,150,255,.45);
+    }
+}
+
+/* ================= SECOND TAB ================= */
+
+.empty-page {
+    max-width: 900px;
+    margin: 80px auto;
+    padding: 50px;
+    text-align: center;
+    background: #101521;
+    border: 1px solid #293248;
+    border-radius: 20px;
+}
+
+.empty-page h2 {
+    font-size: 30px;
+    margin-bottom: 12px;
+}
+
+.empty-page p {
+    color: #8994a8;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:1000px) {
+    .game {
+        grid-template-columns: 1fr;
+    }
+
+    .game-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .budget-box {
+        min-width: 0;
+    }
+}
+
+@media(max-width:600px) {
+    header {
+        padding: 0 15px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .tab {
+        padding: 9px 12px;
+    }
+
+    .game {
+        padding: 10px;
+    }
+
+    .pc-area {
+        min-height: 600px;
+    }
+
+    .pc-case {
+        transform: scale(.82);
+        transform-origin: top center;
+        margin-bottom: -80px;
+    }
+
+    .options {
+        grid-template-columns: 1fr;
+    }
+
+    .result-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 </head>
+
 <body>
 
-<div id="loading">ЗАГРУЗКА ИНТЕРЬЕРА…</div>
+<header>
+    <div class="logo">
+        HARD<span>WARE</span> BUILDER
+    </div>
 
-<div id="scene-container"></div>
+    <div class="tabs">
+        <button class="tab active" onclick="openTab('hardware', this)">
+            🖥 Hardware
+        </button>
 
-<div class="panel" id="title-panel">
-  <h1>Кофейня в холле университета</h1>
-  <p>Компактная кофейня у одной несущей стены холла: задняя рабочая стойка у стены с кофемашинами и ингредиентами, клиентская стойка с десертами и выпечкой, проход для бариста между ними, барные стулья у клиентской стойки — формат с обслуживанием, без самообслуживания.</p>
-  <div class="dims">Ширина: 4 м · Длина: 3 м · Одна стена, вторая сторона открыта в холл</div>
+        <button class="tab" onclick="openTab('second', this)">
+            🔒 Вкладка 2
+        </button>
+    </div>
+</header>
+
+
+<!-- ===================================================== -->
+<!-- HARDWARE -->
+<!-- ===================================================== -->
+
+<div id="hardware" class="page active">
+
+    <div class="game-head">
+
+        <div class="game-title">
+            <h1>Собери свой компьютер</h1>
+            <p>Выбирай комплектующие и собери ПК, не превысив бюджет.</p>
+        </div>
+
+        <div class="budget-box">
+
+            <div class="budget-top">
+                <span class="budget-label">
+                    Бюджет игры
+                </span>
+
+                <span id="budgetText" class="budget-value good">
+                    $4,500
+                </span>
+            </div>
+
+            <div class="budget-line">
+                <div id="budgetFill" class="budget-fill"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <main class="game">
+
+        <!-- ================= PC ================= -->
+
+        <section class="pc-area">
+
+            <div class="pc-title">
+                ВАШ ПК • КОМПЛЕКТУЮЩИЕ УСТАНАВЛИВАЮТСЯ ПОЭТАПНО
+            </div>
+
+            <div class="pc-case" id="pcCase">
+
+                <div class="front-panel"></div>
+                <div class="power-button"></div>
+
+                <!-- Motherboard -->
+                <div id="visual-motherboard"
+                     class="part motherboard">
+
+                    <div class="socket"></div>
+
+                    <div class="slots">
+                        <div class="slot"></div>
+                        <div class="slot"></div>
+                        <div class="slot"></div>
+                        <div class="slot"></div>
+                    </div>
+
+                    <div class="pcie"></div>
+                    <div class="pcie"></div>
+
+                    <div class="heatsink"></div>
+
+                </div>
+
+
+                <!-- CPU -->
+                <div id="visual-cpu"
+                     class="part cpu">
+                </div>
+
+
+                <!-- Cooler -->
+                <div id="visual-cooler"
+                     class="part cooler">
+                </div>
+
+
+                <!-- RAM -->
+                <div id="visual-ram1" class="part ram ram1"></div>
+                <div id="visual-ram2" class="part ram ram2"></div>
+                <div id="visual-ram3" class="part ram ram3"></div>
+                <div id="visual-ram4" class="part ram ram4"></div>
+
+
+                <!-- GPU -->
+                <div id="visual-gpu"
+                     class="part gpu">
+
+                    <div class="fan"></div>
+                    <div class="fan"></div>
+                    <div class="fan"></div>
+
+                </div>
+
+
+                <!-- SSD -->
+                <div id="visual-ssd"
+                     class="part ssd">
+                </div>
+
+
+                <!-- PSU -->
+                <div id="visual-psu"
+                     class="part psu">
+                </div>
+
+
+                <!-- Case fans -->
+                <div class="case-fans">
+                    <div class="case-fan"></div>
+                    <div class="case-fan"></div>
+                    <div class="case-fan"></div>
+                </div>
+
+
+                <!-- cables -->
+                <div class="cable c1"></div>
+                <div class="cable c2"></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= CONTROL ================= -->
+
+        <section class="panel">
+
+            <div id="stepCard" class="step-card">
+
+                <div class="step-top">
+
+                    <div>
+                        <div id="stepNumber"
+                             class="step-number">
+                            ШАГ 1 / 8
+                        </div>
+
+                        <h2 id="stepTitle"
+                            class="step-title">
+                            Материнская плата
+                        </h2>
+                    </div>
+
+                    <div id="stepIcon"
+                         class="step-icon">
+                        🧩
+                    </div>
+
+                </div>
+
+
+                <p id="description"
+                   class="description">
+                </p>
+
+
+                <div class="why">
+                    <strong>Зачем нужна?</strong>
+                    <br>
+                    <span id="whyText"></span>
+                </div>
+
+
+                <div class="options-title">
+                    <strong>Выберите комплектующее</strong>
+
+                    <span>
+                        Чем дороже — тем выше уровень
+                    </span>
+                </div>
+
+
+                <div id="options"
+                     class="options">
+                </div>
+
+
+                <div class="navigation">
+
+                    <button id="backBtn"
+                            class="nav-btn"
+                            onclick="previousStep()">
+                        ← Назад
+                    </button>
+
+                    <button id="nextBtn"
+                            class="nav-btn primary"
+                            onclick="nextStep()">
+                        Выбрать и дальше →
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY -->
+
+            <div class="summary">
+
+                <h3>
+                    📋 Ваша сборка
+                </h3>
+
+                <div id="summaryList"
+                     class="summary-list">
+                </div>
+
+            </div>
+
+
+            <!-- FINAL -->
+
+            <div id="final"
+                 class="final">
+
+                <div class="final-icon">
+                    🖥️
+                </div>
+
+                <h2>
+                    ПК собран!
+                </h2>
+
+                <p>
+                    Все основные комплектующие выбраны.
+                </p>
+
+
+                <div class="result-grid">
+
+                    <div class="result-box">
+                        <small>Потрачено</small>
+                        <strong id="spentResult">
+                            $0
+                        </strong>
+                    </div>
+
+                    <div class="result-box">
+                        <small>Осталось</small>
+                        <strong id="leftResult">
+                            $0
+                        </strong>
+                    </div>
+
+                    <div class="result-box">
+                        <small>Комплектующих</small>
+                        <strong>
+                            8 / 8
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="score"
+                     id="scoreText">
+                    Оценка: 100 / 100
+                </div>
+
+
+                <button class="power-btn"
+                        onclick="powerOn()">
+                    ⚡ Запустить ПК
+                </button>
+
+                <br><br>
+
+                <button class="nav-btn"
+                        onclick="restartGame()">
+                    🔄 Собрать заново
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
 </div>
 
-<div class="panel" id="legend">
-  <div><span class="dot" style="background:#b8874f"></span>Стойка и латунь</div>
-  <div><span class="dot" style="background:#a85c37"></span>Напольная плитка</div>
-  <div><span class="dot" style="background:#7c8a6b"></span>Растения</div>
-  <div><span class="dot" style="background:#efe4d3"></span>Стены холла</div>
+
+<!-- ===================================================== -->
+<!-- SECOND TAB -->
+<!-- ===================================================== -->
+
+<div id="second"
+     class="page">
+
+    <div class="empty-page">
+
+        <h2>
+            🔒 Вторая вкладка
+        </h2>
+
+        <p>
+            Здесь позже можно добавить следующую часть проекта.
+            Например: тест знаний, 3D-сборку, сравнение комплектующих
+            или мини-игру.
+        </p>
+
+    </div>
+
 </div>
 
-<div class="panel" id="controls-panel">
-  <button id="btn-orbit" class="active">Обзор</button>
-  <button id="btn-front">Спереди</button>
-  <button id="btn-top">Сверху</button>
-  <button id="btn-side">Сбоку</button>
-  <button id="btn-auto">Авто-вращение</button>
-  <button id="btn-time">Вечер</button>
-</div>
 
-<div id="hint">Зажмите и потяните — вращение<br>Колесо мыши — приближение</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-(function(){
 
-  var container = document.getElementById('scene-container');
-  var W = window.innerWidth, H = window.innerHeight;
+/* =========================================================
+   GAME DATA
+========================================================= */
 
-  // ---------- базовая сцена ----------
-  var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x1c130d);
-  scene.fog = new THREE.Fog(0x1c130d, 9, 22);
+const BUDGET = 4500;
 
-  var camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
-  var target = new THREE.Vector3(0, 1.3, -1);
+const components = [
 
-  var renderer = new THREE.WebGLRenderer({antialias:true});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(W, H);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  renderer.outputEncoding = THREE.sRGBEncoding;
-  container.appendChild(renderer.domElement);
+    {
+        id: "motherboard",
+        title: "Материнская плата",
+        icon: "🧩",
 
-  // ---------- простое орбитальное управление (без внешних зависимостей) ----------
-  var spherical = { radius: 5, theta: Math.PI*0.32, phi: Math.PI*0.38 };
-  var isDragging = false, lastX=0, lastY=0;
-  var autoRotate = false;
+        description:
+        "Главная плата компьютера. К ней подключаются процессор, оперативная память, видеокарта, накопители и другие устройства.",
 
-  function updateCameraFromSpherical(){
-    spherical.phi = Math.max(0.18, Math.min(Math.PI/2 - 0.02, spherical.phi));
-    spherical.radius = Math.max(3, Math.min(18, spherical.radius));
-    var x = target.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
-    var y = target.y + spherical.radius * Math.cos(spherical.phi);
-    var z = target.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
-    camera.position.set(x,y,z);
-    camera.lookAt(target);
-  }
-  updateCameraFromSpherical();
+        why:
+        "Она соединяет все основные комплектующие между собой и позволяет им работать как единая система.",
 
-  renderer.domElement.addEventListener('pointerdown', function(e){
-    isDragging = true; lastX = e.clientX; lastY = e.clientY;
-    setOrbitButtonActive();
-  });
-  window.addEventListener('pointerup', function(){ isDragging = false; });
-  window.addEventListener('pointermove', function(e){
-    if(!isDragging) return;
-    var dx = e.clientX - lastX, dy = e.clientY - lastY;
-    lastX = e.clientX; lastY = e.clientY;
-    spherical.theta -= dx * 0.006;
-    spherical.phi -= dy * 0.006;
-    updateCameraFromSpherical();
-  });
-  renderer.domElement.addEventListener('wheel', function(e){
-    e.preventDefault();
-    spherical.radius += e.deltaY * 0.01;
-    updateCameraFromSpherical();
-  }, {passive:false});
+        options: [
 
-  window.addEventListener('resize', function(){
-    W = window.innerWidth; H = window.innerHeight;
-    camera.aspect = W/H;
-    camera.updateProjectionMatrix();
-    renderer.setSize(W,H);
-  });
+            {
+                name: "ASRock B650M",
+                spec: "AM5 • DDR5 • mATX • 2× M.2",
+                price: 130,
+                tier: "Бюджет"
+            },
 
-  // ---------- материалы ----------
-  function canvasTexture(draw, w, h, repeatX, repeatY){
-    var c = document.createElement('canvas'); c.width=w; c.height=h;
-    var ctx = c.getContext('2d');
-    draw(ctx, w, h);
-    var tex = new THREE.CanvasTexture(c);
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(repeatX||1, repeatY||1);
-    tex.encoding = THREE.sRGBEncoding;
-    return tex;
-  }
+            {
+                name: "MSI B650 Gaming",
+                spec: "AM5 • DDR5 • ATX • Wi-Fi",
+                price: 190,
+                tier: "Бюджет"
+            },
 
-  var floorTex = canvasTexture(function(ctx,w,h){
-    ctx.fillStyle = '#8a4a2e'; ctx.fillRect(0,0,w,h);
-    var tile = 64;
-    for(var y=0;y<h;y+=tile){
-      for(var x=0;x<w;x+=tile){
-        var shade = (Math.floor(x/tile)+Math.floor(y/tile))%2===0 ? '#a85c37' : '#96502f';
-        ctx.fillStyle = shade;
-        ctx.fillRect(x+1,y+1,tile-2,tile-2);
-      }
+            {
+                name: "Gigabyte B650 AORUS",
+                spec: "AM5 • DDR5 • ATX • 3× M.2",
+                price: 260,
+                tier: "Средний"
+            },
+
+            {
+                name: "ASUS TUF B650",
+                spec: "AM5 • DDR5 • Wi-Fi • ATX",
+                price: 320,
+                tier: "Средний"
+            },
+
+            {
+                name: "MSI X670E Carbon",
+                spec: "AM5 • DDR5 • PCIe 5.0 • Wi-Fi",
+                price: 390,
+                tier: "Премиум"
+            },
+
+            {
+                name: "ASUS ROG X670E",
+                spec: "AM5 • DDR5 • PCIe 5.0 • ATX",
+                price: 470,
+                tier: "Премиум"
+            },
+
+            {
+                name: "ASUS ROG Crosshair",
+                spec: "AM5 • DDR5 • топовый VRM • Wi-Fi",
+                price: 580,
+                tier: "Ultra"
+            },
+
+            {
+                name: "MSI MEG X670E",
+                spec: "AM5 • DDR5 • расширенные возможности",
+                price: 650,
+                tier: "Ultra"
+            }
+
+        ]
+    },
+
+
+    {
+        id: "cpu",
+        title: "Процессор",
+        icon: "🧠",
+
+        description:
+        "Процессор, или CPU, выполняет вычисления и обрабатывает команды программ.",
+
+        why:
+        "Без процессора компьютер не сможет выполнять программы, игры и другие задачи.",
+
+        options: [
+
+            {
+                name: "Ryzen 5 7600",
+                spec: "6 ядер • 12 потоков • AM5",
+                price: 190,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "Ryzen 7 7700",
+                spec: "8 ядер • 16 потоков • AM5",
+                price: 280,
+                tier: "Средний"
+            },
+
+            {
+                name: "Ryzen 7 7800X3D",
+                spec: "8 ядер • 16 потоков • 3D Cache",
+                price: 390,
+                tier: "Средний"
+            },
+
+            {
+                name: "Ryzen 9 7900X",
+                spec: "12 ядер • 24 потока • AM5",
+                price: 440,
+                tier: "Премиум"
+            },
+
+            {
+                name: "Ryzen 9 7950X",
+                spec: "16 ядер • 32 потока • AM5",
+                price: 560,
+                tier: "Премиум"
+            },
+
+            {
+                name: "Ryzen 9 7950X3D",
+                spec: "16 ядер • 32 потока • 3D Cache",
+                price: 650,
+                tier: "Ultra"
+            },
+
+            {
+                name: "Ryzen 9 Creator",
+                spec: "16 ядер • 32 потока • усиленный режим",
+                price: 760,
+                tier: "Ultra"
+            },
+
+            {
+                name: "Ryzen Extreme",
+                spec: "16 ядер • 32 потока • максимальный класс",
+                price: 850,
+                tier: "Ultra"
+            }
+
+        ]
+    },
+
+
+    {
+        id: "cooler",
+        title: "Охлаждение CPU",
+        icon: "❄️",
+
+        description:
+        "Система охлаждения отводит тепло от процессора.",
+
+        why:
+        "Во время работы CPU сильно нагревается. Охлаждение помогает поддерживать нормальную температуру.",
+
+        options: [
+
+            {
+                name: "DeepCool AG400",
+                spec: "Башенный кулер • 120 мм",
+                price: 35,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "DeepCool AK400",
+                spec: "4 тепловые трубки • 120 мм",
+                price: 50,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "Thermalright Peerless",
+                spec: "Dual Tower • 2 вентилятора",
+                price: 75,
+                tier: "Средний"
+            },
+
+            {
+                name: "DeepCool AK620",
+                spec: "Dual Tower • 6 тепловых трубок",
+                price: 90,
+                tier: "Средний"
+            },
+
+            {
+                name: "Arctic Liquid Freezer",
+                spec: "240 мм • жидкостное охлаждение",
+                price: 125,
+                tier: "Премиум"
+            },
+
+            {
+                name: "NZXT Kraken 240",
+                spec: "240 мм • AIO • дисплей",
+                price: 160,
+                tier: "Премиум"
+            },
+
+            {
+                name: "Corsair H150i",
+                spec: "360 мм • AIO",
+                price: 210,
+                tier: "Ultra"
+            },
+
+            {
+                name: "ROG Ryujin",
+                spec: "360 мм • премиальная СЖО",
+                price: 270,
+                tier: "Ultra"
+            }
+
+        ]
+    },
+
+
+    {
+        id: "ram",
+        title: "Оперативная память",
+        icon: "⚡",
+
+        description:
+        "Оперативная память, или RAM, временно хранит данные, которые прямо сейчас используются компьютером.",
+
+        why:
+        "Чем больше подходящей оперативной памяти, тем комфортнее компьютер работает с несколькими программами и большими задачами.",
+
+        options: [
+
+            {
+                name: "16 GB DDR5",
+                spec: "2×8 GB • 5200 MHz",
+                price: 55,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "32 GB DDR5",
+                spec: "2×16 GB • 5600 MHz",
+                price: 85,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "32 GB DDR5 Gaming",
+                spec: "2×16 GB • 6000 MHz • RGB",
+                price: 110,
+                tier: "Средний"
+            },
+
+            {
+                name: "64 GB DDR5",
+                spec: "2×32 GB • 6000 MHz",
+                price: 170,
+                tier: "Средний"
+            },
+
+            {
+                name: "64 GB DDR5 RGB",
+                spec: "2×32 GB • 6400 MHz • RGB",
+                price: 210,
+                tier: "Премиум"
+            },
+
+            {
+                name: "96 GB DDR5",
+                spec: "2×48 GB • 6000 MHz",
+                price: 270,
+                tier: "Премиум"
+            },
+
+            {
+                name: "128 GB DDR5",
+                spec: "4×32 GB • 5600 MHz",
+                price: 360,
+                tier: "Ultra"
+            },
+
+            {
+                name: "128 GB DDR5 Pro",
+                spec: "4×32 GB • усиленный профиль",
+                price: 440,
+                tier: "Ultra"
+            }
+
+        ]
+    },
+
+
+    {
+        id: "gpu",
+        title: "Видеокарта",
+        icon: "🎮",
+
+        description:
+        "GPU отвечает за обработку графики и создание изображения, которое отображается на мониторе.",
+
+        why:
+        "Особенно важна для игр, 3D-графики, монтажа видео и других графически сложных задач.",
+
+        options: [
+
+            {
+                name: "RTX 4060",
+                spec: "8 GB VRAM • Gaming",
+                price: 300,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "RTX 4060 Ti",
+                spec: "8 GB VRAM • Gaming",
+                price: 420,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "RTX 4070 Super",
+                spec: "12 GB VRAM • 1440p",
+                price: 600,
+                tier: "Средний"
+            },
+
+            {
+                name: "RTX 4070 Ti Super",
+                spec: "16 GB VRAM • 1440p/4K",
+                price: 800,
+                tier: "Средний"
+            },
+
+            {
+                name: "RTX 4080 Super",
+                spec: "16 GB VRAM • High-End",
+                price: 1000,
+                tier: "Премиум"
+            },
+
+            {
+                name: "RX 7900 XTX",
+                spec: "24 GB VRAM • High-End",
+                price: 1050,
+                tier: "Премиум"
+            },
+
+            {
+                name: "RTX 4090",
+                spec: "24 GB VRAM • Extreme Gaming",
+                price: 1500,
+                tier: "Ultra"
+            },
+
+            {
+                name: "RTX 4090 OC",
+                spec: "24 GB VRAM • Factory OC",
+                price: 1700,
+                tier: "Ultra"
+            }
+
+        ]
+    },
+
+
+    {
+        id: "ssd",
+        title: "SSD накопитель",
+        icon: "💾",
+
+        description:
+        "SSD используется для хранения операционной системы, программ, игр, фотографий и других файлов.",
+
+        why:
+        "SSD намного быстрее классического HDD и помогает быстрее загружать систему и программы.",
+
+        options: [
+
+            {
+                name: "500 GB NVMe",
+                spec: "PCIe 4.0 • до 5000 MB/s",
+                price: 40,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "1 TB NVMe",
+                spec: "PCIe 4.0 • до 7000 MB/s",
+                price: 65,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "2 TB NVMe",
+                spec: "PCIe 4.0 • до 7000 MB/s",
+                price: 110,
+                tier: "Средний"
+            },
+
+            {
+                name: "2 TB Gaming NVMe",
+                spec: "PCIe 4.0 • высокий ресурс",
+                price: 145,
+                tier: "Средний"
+            },
+
+            {
+                name: "4 TB NVMe",
+                spec: "PCIe 4.0 • большой объём",
+                price: 240,
+                tier: "Премиум"
+            },
+
+            {
+                name: "4 TB Gen5",
+                spec: "PCIe 5.0 • высокая скорость",
+                price: 330,
+                tier: "Премиум"
+            },
+
+            {
+                name: "8 TB NVMe",
+                spec: "PCIe 4.0 • огромный объём",
+                price: 520,
+                tier: "Ultra"
+            },
+
+            {
+                name: "8 TB Gen5",
+                spec: "PCIe 5.0 • Extreme",
+                price: 700,
+                tier: "Ultra"
+            }
+
+        ]
+    },
+
+
+    {
+        id: "psu",
+        title: "Блок питания",
+        icon: "🔌",
+
+        description:
+        "Блок питания преобразует электричество из розетки и подаёт необходимое питание всем компонентам компьютера.",
+
+        why:
+        "Мощности блока питания должно хватать для всех компонентов системы.",
+
+        options: [
+
+            {
+                name: "650W Bronze",
+                spec: "650 Вт • 80+ Bronze",
+                price: 65,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "750W Gold",
+                spec: "750 Вт • 80+ Gold",
+                price: 90,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "850W Gold",
+                spec: "850 Вт • Modular",
+                price: 125,
+                tier: "Средний"
+            },
+
+            {
+                name: "1000W Gold",
+                spec: "1000 Вт • Modular",
+                price: 170,
+                tier: "Средний"
+            },
+
+            {
+                name: "1000W Platinum",
+                spec: "1000 Вт • 80+ Platinum",
+                price: 220,
+                tier: "Премиум"
+            },
+
+            {
+                name: "1200W Platinum",
+                spec: "1200 Вт • Modular",
+                price: 270,
+                tier: "Премиум"
+            },
+
+            {
+                name: "1300W Titanium",
+                spec: "1300 Вт • Titanium",
+                price: 350,
+                tier: "Ultra"
+            },
+
+            {
+                name: "1600W Titanium",
+                spec: "1600 Вт • Extreme",
+                price: 450,
+                tier: "Ultra"
+            }
+
+        ]
+    },
+
+
+    {
+        id: "case",
+        title: "Корпус",
+        icon: "🖥️",
+
+        description:
+        "Корпус содержит и защищает внутренние комплектующие компьютера.",
+
+        why:
+        "Он также влияет на охлаждение, расположение деталей, количество вентиляторов и внешний вид ПК.",
+
+        options: [
+
+            {
+                name: "Basic ATX Case",
+                spec: "ATX • 2 вентилятора",
+                price: 60,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "DeepCool CC560",
+                spec: "ATX • 4 вентилятора",
+                price: 75,
+                tier: "Бюджет"
+            },
+
+            {
+                name: "Montech Air 903",
+                spec: "ATX • Mesh • 4 вентилятора",
+                price: 100,
+                tier: "Средний"
+            },
+
+            {
+                name: "NZXT H5 Flow",
+                spec: "ATX • стекло • Mesh",
+                price: 120,
+                tier: "Средний"
+            },
+
+            {
+                name: "Corsair 4000D",
+                spec: "ATX • Tempered Glass",
+                price: 130,
+                tier: "Премиум"
+            },
+
+            {
+                name: "Lian Li O11",
+                spec: "ATX • панорамное стекло",
+                price: 170,
+                tier: "Премиум"
+            },
+
+            {
+                name: "Hyte Y70",
+                spec: "ATX • панорамное стекло",
+                price: 230,
+                tier: "Ultra"
+            },
+
+            {
+                name: "Premium Showcase",
+                spec: "ATX • стекло • RGB • 10 вентиляторов",
+                price: 300,
+                tier: "Ultra"
+            }
+
+        ]
     }
-  }, 512,512, 3, 7);
-  var floorMat = new THREE.MeshStandardMaterial({map:floorTex, roughness:0.85, metalness:0.05});
 
-  var wallTex = canvasTexture(function(ctx,w,h){
-    ctx.fillStyle = '#efe4d3'; ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle = 'rgba(0,0,0,0.04)';
-    for(var i=0;i<400;i++){
-      ctx.beginPath();
-      ctx.moveTo(Math.random()*w, Math.random()*h);
-      ctx.lineTo(Math.random()*w, Math.random()*h);
-      ctx.stroke();
-    }
-  }, 256,256,2,2);
-  var wallMat = new THREE.MeshStandardMaterial({map:wallTex, roughness:0.95});
-  var wallLowerMat = new THREE.MeshStandardMaterial({color:0x5a3d2b, roughness:0.8});
+];
 
-  var woodMat = new THREE.MeshStandardMaterial({color:0x6b4226, roughness:0.55, metalness:0.05});
-  var darkWoodMat = new THREE.MeshStandardMaterial({color:0x3e2723, roughness:0.5, metalness:0.05});
-  var counterTopMat = new THREE.MeshStandardMaterial({color:0x2b1c14, roughness:0.35, metalness:0.15});
-  var brassMat = new THREE.MeshStandardMaterial({color:0xb8874f, roughness:0.3, metalness:0.85});
-  var steelMat = new THREE.MeshStandardMaterial({color:0xcfcfcf, roughness:0.25, metalness:0.9});
-  var glassMat = new THREE.MeshPhysicalMaterial({color:0xffffff, transparent:true, opacity:0.18, roughness:0.05, metalness:0, transmission:0.6});
-  var blackMat = new THREE.MeshStandardMaterial({color:0x1a1a1a, roughness:0.4, metalness:0.4});
-  var sageMat = new THREE.MeshStandardMaterial({color:0x7c8a6b, roughness:0.9});
-  var potMat = new THREE.MeshStandardMaterial({color:0xa85c37, roughness:0.8});
-  var creamMat = new THREE.MeshStandardMaterial({color:0xf4ead9, roughness:0.6});
-  var menuBoardMat = new THREE.MeshStandardMaterial({color:0x241812, roughness:0.7});
 
-  // ---------- геометрия помещения ----------
-  var CORRIDOR_WIDTH = 4;   // между стенами
-  var CORRIDOR_LENGTH = 3;
-  var WALL_HEIGHT = 3;
-  var halfW = CORRIDOR_WIDTH/2;
-  var backZ = -CORRIDOR_LENGTH/2;
-  var frontZ = CORRIDOR_LENGTH/2;
+/* =========================================================
+   VARIABLES
+========================================================= */
 
-  // рабочая зона бариста и барная стойка (не самообслуживание)
-  var BACK_COUNTER_D = 0.45;                               // глубина задней рабочей стойки у стены (оборудование, ингредиенты)
-  var backCounterZ = backZ + 0.08 + BACK_COUNTER_D/2;       // почти вплотную к задней стене
-  var backCounterFrontZ = backCounterZ + BACK_COUNTER_D/2;  // передняя грань задней стойки
+let currentStep = 0;
 
-  var WORK_GAP = 0.75;                                     // проход для бариста между двумя стойками
-  var COUNTER_D = 0.5;                                     // толщина клиентской (фронтальной) стойки
-  var counterZ = backCounterFrontZ + WORK_GAP + COUNTER_D/2;  // центр клиентской стойки по глубине
-  var counterFrontZ = counterZ + COUNTER_D/2;               // передняя грань клиентской стойки (к посетителям)
-  var baristaZ = backCounterFrontZ + WORK_GAP/2;            // бариста работают в проходе между стойками
+let selected = new Array(components.length).fill(null);
 
-  var room = new THREE.Group();
-  scene.add(room);
 
-  // пол
-  var floor = new THREE.Mesh(new THREE.BoxGeometry(CORRIDOR_WIDTH, 0.1, CORRIDOR_LENGTH), floorMat);
-  floor.position.set(0,-0.05,0);
-  floor.receiveShadow = true;
-  room.add(floor);
+/* =========================================================
+   GET TOTAL
+========================================================= */
 
-  // плинтус + стены (левая/правая)
-  function buildWall(xSign){
-    var g = new THREE.Group();
-    var wall = new THREE.Mesh(new THREE.BoxGeometry(0.2, WALL_HEIGHT, CORRIDOR_LENGTH), wallMat);
-    wall.position.set(xSign*(halfW+0.1), WALL_HEIGHT/2, 0);
-    wall.receiveShadow = true; wall.castShadow = true;
-    g.add(wall);
-    var base = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.5, CORRIDOR_LENGTH), wallLowerMat);
-    base.position.set(xSign*(halfW+0.11), 0.25, 0);
-    g.add(base);
-    return g;
-  }
-  room.add(buildWall(-1));
-  // правая стена убрана — кофейня открыта в сторону холла
+function getSpent() {
 
-  // потолок (тёмный, с балками)
-  var ceiling = new THREE.Mesh(new THREE.BoxGeometry(CORRIDOR_WIDTH, 0.1, CORRIDOR_LENGTH), new THREE.MeshStandardMaterial({color:0x241812, roughness:0.9}));
-  ceiling.position.set(0, WALL_HEIGHT, 0);
-  room.add(ceiling);
-  for(var bz=backZ+0.6; bz<frontZ; bz+=1.5){
-    var beam = new THREE.Mesh(new THREE.BoxGeometry(CORRIDOR_WIDTH-0.1, 0.14, 0.14), darkWoodMat);
-    beam.position.set(0, WALL_HEIGHT-0.07, bz);
-    room.add(beam);
-  }
+    return selected.reduce((total, item) => {
 
-  // задняя стена с проёмом под стойку
-  var backWall = new THREE.Mesh(new THREE.BoxGeometry(CORRIDOR_WIDTH, WALL_HEIGHT, 0.15), wallMat);
-  backWall.position.set(0, WALL_HEIGHT/2, backZ-0.05);
-  backWall.receiveShadow = true;
-  room.add(backWall);
+        if (!item) return total;
 
-  // ---------- стойка кофейни ----------
-  var counter = new THREE.Group();
-  var counterBaseW = 3.2, counterD = COUNTER_D, counterH = 1.05;
-  var base = new THREE.Mesh(new THREE.BoxGeometry(counterBaseW, counterH, counterD), woodMat);
-  base.position.set(0, counterH/2, counterZ);
-  base.castShadow = true; base.receiveShadow = true;
-  counter.add(base);
-  var top = new THREE.Mesh(new THREE.BoxGeometry(counterBaseW+0.08, 0.06, counterD+0.1), counterTopMat);
-  top.position.set(0, counterH+0.03, counterZ);
-  top.castShadow = true;
-  counter.add(top);
-  // латунная полоска-декор
-  var strip = new THREE.Mesh(new THREE.BoxGeometry(counterBaseW-0.1, 0.03, 0.03), brassMat);
-  strip.position.set(0, 0.35, counterZ+counterD/2-0.02);
-  counter.add(strip);
-  // деревянные панели-рейки на фасаде стойки
-  for(var px=-counterBaseW/2+0.15; px<counterBaseW/2; px+=0.16){
-    var slat = new THREE.Mesh(new THREE.BoxGeometry(0.06, counterH-0.1, 0.02), darkWoodMat);
-    slat.position.set(px, counterH/2, counterZ+counterD/2+0.01);
-    counter.add(slat);
-  }
-  room.add(counter);
+        return total + item.price;
 
-  // ---------- задняя рабочая стойка у стены (оборудование, ингредиенты, кофемашины) ----------
-  var backCounter = new THREE.Group();
-  var backCounterBaseW = 3.2;
-  var backBase = new THREE.Mesh(new THREE.BoxGeometry(backCounterBaseW, counterH, BACK_COUNTER_D), woodMat);
-  backBase.position.set(0, counterH/2, backCounterZ);
-  backBase.castShadow = true; backBase.receiveShadow = true;
-  backCounter.add(backBase);
-  var backTop = new THREE.Mesh(new THREE.BoxGeometry(backCounterBaseW+0.06, 0.05, BACK_COUNTER_D+0.06), counterTopMat);
-  backTop.position.set(0, counterH+0.025, backCounterZ);
-  backTop.castShadow = true;
-  backCounter.add(backTop);
-  room.add(backCounter);
+    }, 0);
+}
 
-  // ингредиенты и расходники (банки/канистры) на задней стойке
-  function buildIngredientJar(x, r, h, mat){
-    var jar = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 14), mat);
-    jar.position.set(x, counterH+0.05+h/2, backCounterZ+0.08);
-    jar.castShadow = true;
-    var lid = new THREE.Mesh(new THREE.CylinderGeometry(r*0.85, r*0.85, 0.015, 14), brassMat);
-    lid.position.set(x, counterH+0.05+h+0.008, backCounterZ+0.08);
-    return [jar, lid];
-  }
-  var jarMats = [creamMat, new THREE.MeshStandardMaterial({color:0x4a3527, roughness:0.6}), steelMat, new THREE.MeshStandardMaterial({color:0xd8c9a8, roughness:0.5})];
-  [ {x:0.0,r:0.06,h:0.2}, {x:0.42,r:0.07,h:0.24}, {x:0.86,r:0.055,h:0.17}, {x:1.3,r:0.08,h:0.28}, {x:1.55,r:0.05,h:0.15} ].forEach(function(j,i){
-    buildIngredientJar(j.x, j.r, j.h, jarMats[i%jarMats.length]).forEach(function(m){ room.add(m); });
-  });
 
-  // кофемашина
-  function buildCoffeeMachine(x){
-    var g = new THREE.Group();
-    var bodyMat = blackMat;
-    var body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.42, 0.42), bodyMat);
-    body.position.y = counterH+0.06+0.21;
-    body.castShadow = true;
-    g.add(body);
-    var group1 = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.16,10), steelMat);
-    group1.position.set(-0.12, counterH+0.06-0.02, 0.24);
-    g.add(group1);
-    var group2 = group1.clone(); group2.position.x = 0.12;
-    g.add(group2);
-    var gauge = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.02,16), brassMat);
-    gauge.rotation.x = Math.PI/2;
-    gauge.position.set(0, counterH+0.06+0.34, 0.22);
-    g.add(gauge);
-    g.position.set(x, 0, backCounterZ-0.02);
-    return g;
-  }
-  room.add(buildCoffeeMachine(-1.3));
-  room.add(buildCoffeeMachine(-0.55));
+/* =========================================================
+   FORMAT MONEY
+========================================================= */
 
-  // витрина с выпечкой (стекло)
-  function buildPastryCase(x){
-    var g = new THREE.Group();
-    var frameMat = darkWoodMat;
-    var w=0.7,d=0.4,h=0.42;
-    var glassBox = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), glassMat);
-    glassBox.position.y = counterH+0.06+h/2;
-    g.add(glassBox);
-    // рамки
-    var edges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(w,h,d)), new THREE.LineBasicMaterial({color:0x2b1c14}));
-    edges.position.y = counterH+0.06+h/2;
-    g.add(edges);
-    // полка внутри
-    var shelf = new THREE.Mesh(new THREE.BoxGeometry(w-0.05,0.02,d-0.05), woodMat);
-    shelf.position.y = counterH+0.06+0.15;
-    g.add(shelf);
-    // выпечка и десерты (маленькие торы/сферы разных цветов — круассаны, эклеры, тарты)
-    var pastryColors = [0xc9915a,0xdbb37a,0x9a5a34,0x7a4030];
-    for(var i=0;i<5;i++){
-      var pMat = new THREE.MeshStandardMaterial({color:pastryColors[i%4], roughness:0.7});
-      var p = new THREE.Mesh(new THREE.SphereGeometry(0.048,10,8), pMat);
-      p.scale.y = 0.6;
-      p.position.set(-w/2+0.09+i*0.13, counterH+0.06+0.18, 0);
-      g.add(p);
-    }
-    g.position.set(x,0,counterZ-0.02);
-    return g;
-  }
-  room.add(buildPastryCase(1.0));
+function money(value) {
 
-  // отдельная витрина-стойка с десертами (двухъярусная — торты/пирожные)
-  function buildDessertStand(x){
-    var g = new THREE.Group();
-    var cakeColors = [0xf4ead9,0xc9915a,0x8a4a2e];
-    // нижний ярус
-    var tier1 = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.17,0.1,20), new THREE.MeshStandardMaterial({color:cakeColors[0], roughness:0.6}));
-    tier1.position.y = counterH+0.06+0.08;
-    g.add(tier1);
-    var icing1 = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.02,20), new THREE.MeshStandardMaterial({color:cakeColors[1], roughness:0.5}));
-    icing1.position.y = counterH+0.06+0.14;
-    g.add(icing1);
-    // ножка стенда
-    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.16,10), brassMat);
-    pole.position.y = counterH+0.06+0.22;
-    g.add(pole);
-    // верхний ярус — пирожные
-    var plate = new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.015,20), brassMat);
-    plate.position.y = counterH+0.06+0.30;
-    g.add(plate);
-    for(var i=0;i<3;i++){
-      var ang = (i/3)*Math.PI*2;
-      var cake = new THREE.Mesh(new THREE.SphereGeometry(0.045,10,8), new THREE.MeshStandardMaterial({color:cakeColors[i%3], roughness:0.65}));
-      cake.scale.y = 0.7;
-      cake.position.set(Math.cos(ang)*0.07, counterH+0.06+0.335, Math.sin(ang)*0.07);
-      g.add(cake);
-    }
-    g.position.set(x,0,counterZ+0.02);
-    return g;
-  }
-  room.add(buildDessertStand(0.35));
+    return "$" + value.toLocaleString("en-US");
 
-  // стопки стаканов/чашек на стойке
-  function buildCupStack(x,z){
-    var g = new THREE.Group();
-    for(var i=0;i<3;i++){
-      var cup = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.03,0.06,12), creamMat);
-      cup.position.set(0, counterH+0.06+0.03+i*0.062, 0);
-      g.add(cup);
-    }
-    g.position.set(x,0,z);
-    return g;
-  }
-  room.add(buildCupStack(-1.5, counterZ-0.03));
-  room.add(buildCupStack(1.5, counterZ+0.03));
+}
 
-  // полки над стойкой
-  function buildShelfUnit(){
-    var g = new THREE.Group();
-    for(var i=0;i<2;i++){
-      var shelf = new THREE.Mesh(new THREE.BoxGeometry(2.6,0.04,0.22), woodMat);
-      shelf.position.set(0, 1.85+i*0.5, backZ+0.02);
-      shelf.castShadow = true;
-      g.add(shelf);
-      // держатели
-      var holderMat = brassMat;
-      for(var hx=-1.2; hx<=1.2; hx+=1.2){
-        var holder = new THREE.Mesh(new THREE.BoxGeometry(0.02,0.04,0.02), holderMat);
-        holder.position.set(hx, 1.85+i*0.5-0.02, backZ+0.02+0.09);
-        g.add(holder);
-      }
-      // чашки/банки на полке
-      for(var j=0;j<5;j++){
-        var jarMat = j%2===0 ? creamMat : new THREE.MeshStandardMaterial({color:0x4a3527, roughness:0.6});
-        var jar = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.12,10), jarMat);
-        jar.position.set(-1.1+j*0.5, 1.85+i*0.5+0.08, backZ+0.02);
-        g.add(jar);
-      }
-    }
-    return g;
-  }
-  room.add(buildShelfUnit());
 
-  // меню на стене (доска с текстурой)
-  var menuTex = canvasTexture(function(ctx,w,h){
-    ctx.fillStyle = '#241812'; ctx.fillRect(0,0,w,h);
-    ctx.strokeStyle = '#b8874f'; ctx.lineWidth = 6;
-    ctx.strokeRect(10,10,w-20,h-20);
-    ctx.fillStyle = '#f4ead9';
-    ctx.font = '600 34px Georgia';
-    ctx.textAlign = 'center';
-    ctx.fillText('МЕНЮ', w/2, 55);
-    ctx.font = '20px Georgia';
-    ctx.textAlign = 'left';
-    var items = ['Эспрессо', 'Капучино', 'Латте', 'Раф', 'Круассан', 'Чизкейк'];
-    items.forEach(function(t,i){
-      ctx.fillText('• '+t, 30, 100 + i*32);
+/* =========================================================
+   UPDATE BUDGET
+========================================================= */
+
+function updateBudget() {
+
+    const spent = getSpent();
+
+    const remaining = BUDGET - spent;
+
+    const percent = Math.min(
+        100,
+        Math.max(0, (spent / BUDGET) * 100)
+    );
+
+    document.getElementById("budgetText").textContent =
+        money(remaining);
+
+    const budgetText =
+        document.getElementById("budgetText");
+
+    budgetText.classList.toggle(
+        "good",
+        remaining >= 0
+    );
+
+    budgetText.classList.toggle(
+        "bad",
+        remaining < 0
+    );
+
+    document.getElementById("budgetFill").style.width =
+        percent + "%";
+
+    updateSummary();
+}
+
+
+/* =========================================================
+   RENDER STEP
+========================================================= */
+
+function renderStep() {
+
+    const component = components[currentStep];
+
+    document.getElementById("stepNumber").textContent =
+        `ШАГ ${currentStep + 1} / ${components.length}`;
+
+    document.getElementById("stepTitle").textContent =
+        component.title;
+
+    document.getElementById("stepIcon").textContent =
+        component.icon;
+
+    document.getElementById("description").textContent =
+        component.description;
+
+    document.getElementById("whyText").textContent =
+        component.why;
+
+
+    const optionsBox =
+        document.getElementById("options");
+
+    optionsBox.innerHTML = "";
+
+
+    const spent = getSpent();
+
+    const currentSelected =
+        selected[currentStep];
+
+    const spentWithoutCurrent =
+        currentSelected
+            ? spent - currentSelected.price
+            : spent;
+
+
+    component.options.forEach((option, index) => {
+
+        const canAfford =
+            spentWithoutCurrent + option.price <= BUDGET;
+
+
+        const card =
+            document.createElement("div");
+
+        card.className = "option";
+
+
+        if (!canAfford) {
+
+            card.classList.add("disabled");
+
+        }
+
+
+        if (
+            currentSelected &&
+            currentSelected.name === option.name
+        ) {
+
+            card.classList.add("selected");
+
+        }
+
+
+        let tierClass = "";
+
+        if (option.tier === "Премиум") {
+
+            tierClass = "premium";
+
+        }
+
+        if (option.tier === "Ultra") {
+
+            tierClass = "ultra";
+
+        }
+
+
+        card.innerHTML = `
+
+            <div class="tier ${tierClass}">
+                ${option.tier}
+            </div>
+
+            <div class="option-name">
+                ${option.name}
+            </div>
+
+            <div class="spec">
+                ${option.spec}
+            </div>
+
+            <div class="price">
+                ${money(option.price)}
+            </div>
+
+            <div class="selected-mark">
+                ✓
+            </div>
+
+        `;
+
+
+        if (canAfford) {
+
+            card.onclick = () => {
+
+                selectOption(index);
+
+            };
+
+        }
+
+
+        optionsBox.appendChild(card);
+
     });
-  }, 380, 340, 1,1);
-  var menuBoard = new THREE.Mesh(new THREE.PlaneGeometry(1.1,1.0), new THREE.MeshStandardMaterial({map:menuTex, roughness:0.8}));
-  menuBoard.position.set(0, 2.45, backZ+0.04);
-  room.add(menuBoard);
 
-  // подвесной светильник над стойкой (общая функция)
-  function buildPendant(x,z, on){
-    var g = new THREE.Group();
-    var cord = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006, WALL_HEIGHT-1.55, 6), blackMat);
-    cord.position.set(0, WALL_HEIGHT-(WALL_HEIGHT-1.55)/2, 0);
-    g.add(cord);
-    var shadeMat = brassMat;
-    var shade = new THREE.Mesh(new THREE.ConeGeometry(0.14,0.13,16,1,true), shadeMat);
-    shade.rotation.x = Math.PI;
-    shade.position.set(0, 1.53, 0);
-    g.add(shade);
-    var bulb = new THREE.Mesh(new THREE.SphereGeometry(0.035,10,10), new THREE.MeshStandardMaterial({color:0xfff3d0, emissive:0xffcf80, emissiveIntensity:1.2}));
-    bulb.position.set(0, 1.46, 0);
-    g.add(bulb);
-    var light = new THREE.PointLight(0xffcf8a, on?0.9:0.0, 4.5, 2);
-    light.position.set(0, 1.46, 0);
-    light.castShadow = true;
-    g.add(light);
-    g.position.set(x,0,z);
-    g.userData.light = light;
-    g.userData.bulb = bulb;
-    return g;
-  }
-  var pendants = [];
-  [ -0.9, 0.9 ].forEach(function(x){
-    var p = buildPendant(x, backCounterZ, true);
-    room.add(p); pendants.push(p);
-  });
-  [counterZ, 0.3, 0.9].forEach(function(z){
-    var p = buildPendant(0, z, true);
-    room.add(p); pendants.push(p);
-  });
 
-  // барные стулья прямо у стойки — гости сидят лицом к бариста (посадка у бара, без отдельных столов)
-  function buildStool(x,z, rotY){
-    var g = new THREE.Group();
-    var seat = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.04,20), darkWoodMat);
-    seat.position.y = 0.72;
-    seat.castShadow = true;
-    g.add(seat);
-    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.03,0.68,10), brassMat);
-    pole.position.y = 0.38;
-    g.add(pole);
-    var ring = new THREE.Mesh(new THREE.TorusGeometry(0.13,0.008,8,20), brassMat);
-    ring.rotation.x = Math.PI/2;
-    ring.position.y = 0.28;
-    g.add(ring);
-    var base2 = new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.02,20), blackMat);
-    g.add(base2);
-    g.position.set(x,0,z);
-    g.rotation.y = rotY||0;
-    return g;
-  }
+    document.getElementById("backBtn").disabled =
+        currentStep === 0;
 
-  var stoolXs = [-1.3, -0.65, 0, 0.65, 1.3];
-  stoolXs.forEach(function(sx){
-    room.add(buildStool(sx, counterFrontZ+0.38));
-  });
 
-  // растения в кадках у входа
-  function buildPlant(x,z){
-    var g = new THREE.Group();
-    var pot = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.12,0.28,14), potMat);
-    pot.position.y = 0.14;
-    pot.castShadow = true;
-    g.add(pot);
-    var trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.025,0.35,8), darkWoodMat);
-    trunk.position.y = 0.28+0.17;
-    g.add(trunk);
-    for(var i=0;i<6;i++){
-      var leaf = new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8), sageMat);
-      leaf.scale.set(1,1.4,0.4);
-      var ang = (i/6)*Math.PI*2;
-      leaf.position.set(Math.cos(ang)*0.1, 0.62+Math.random()*0.15, Math.sin(ang)*0.1);
-      leaf.rotation.z = ang;
-      g.add(leaf);
-    }
-    g.position.set(x,0,z);
-    return g;
-  }
-  room.add(buildPlant(-halfW+0.35, frontZ-0.5));
-  room.add(buildPlant(halfW-0.35, frontZ-0.5));
+    const nextButton =
+        document.getElementById("nextBtn");
 
-  // гирлянда светящихся точек вдоль потолка (создаёт уют)
-  var stringGroup = new THREE.Group();
-  var stringMat = new THREE.MeshStandardMaterial({color:0xfff0c8, emissive:0xffcf80, emissiveIntensity:1.3});
-  for(var s=backZ+0.3; s<frontZ; s+=0.35){
-    var sag = Math.sin(((s-backZ)/CORRIDOR_LENGTH)*Math.PI*4)*0.03;
-    var bulb1 = new THREE.Mesh(new THREE.SphereGeometry(0.014,6,6), stringMat);
-    bulb1.position.set(-halfW+0.05, WALL_HEIGHT-0.12+sag, s);
-    stringGroup.add(bulb1);
-    var bulb2 = bulb1.clone();
-    bulb2.position.x = halfW-0.05;
-    stringGroup.add(bulb2);
-  }
-  room.add(stringGroup);
+    if (currentStep === components.length - 1) {
 
-  // стеклянный вход в конце коридора (лёгкий намёк на холл университета)
-  var doorFrame = new THREE.Group();
-  var frameMatD = darkWoodMat;
-  var lf = new THREE.Mesh(new THREE.BoxGeometry(0.08, WALL_HEIGHT, 0.08), frameMatD);
-  lf.position.set(-halfW+0.06, WALL_HEIGHT/2, frontZ-0.05);
-  doorFrame.add(lf);
-  var rf = lf.clone(); rf.position.x = halfW-0.06;
-  doorFrame.add(rf);
-  var glassPane = new THREE.Mesh(new THREE.PlaneGeometry(CORRIDOR_WIDTH-0.2, WALL_HEIGHT-0.1), glassMat);
-  glassPane.position.set(0, WALL_HEIGHT/2, frontZ-0.05);
-  doorFrame.add(glassPane);
-  room.add(doorFrame);
+        nextButton.textContent =
+            "Завершить сборку ✓";
 
-  // ---------- фигура бариста за стойкой ----------
-  function buildBarista(x,z, rotY){
-    var g = new THREE.Group();
-    var skinMat = new THREE.MeshStandardMaterial({color:0xd8a878, roughness:0.7});
-    var shirtMat = new THREE.MeshStandardMaterial({color:0xf4ead9, roughness:0.75});
-    var apronMat = new THREE.MeshStandardMaterial({color:0x3e2b1f, roughness:0.65});
-    var pantsMat = new THREE.MeshStandardMaterial({color:0x2b241f, roughness:0.7});
-    var hairMat = new THREE.MeshStandardMaterial({color:0x241812, roughness:0.6});
-
-    // ноги (скрыты стойкой, но добавляют объём)
-    var legs = new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.1,0.75,10), pantsMat);
-    legs.position.y = 0.375;
-    g.add(legs);
-
-    // торс
-    var torso = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.13,0.55,12), shirtMat);
-    torso.position.y = 0.75+0.275;
-    torso.castShadow = true;
-    g.add(torso);
-
-    // фартук
-    var apron = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.42,0.04), apronMat);
-    apron.position.set(0, 0.75+0.2, 0.13);
-    g.add(apron);
-    var apronStrap = new THREE.Mesh(new THREE.TorusGeometry(0.16,0.012,6,16,Math.PI), apronMat);
-    apronStrap.position.set(0, 1.02, 0);
-    apronStrap.rotation.x = Math.PI/2;
-    g.add(apronStrap);
-
-    // плечи/руки
-    var armGeo = new THREE.CylinderGeometry(0.045,0.04,0.42,8);
-    var armL = new THREE.Mesh(armGeo, shirtMat);
-    armL.position.set(-0.19, 0.75+0.18, 0.04);
-    armL.rotation.z = 0.35;
-    armL.rotation.x = -0.25;
-    g.add(armL);
-    var armR = new THREE.Mesh(armGeo, shirtMat);
-    armR.position.set(0.19, 0.75+0.18, 0.04);
-    armR.rotation.z = -0.35;
-    armR.rotation.x = -0.25;
-    g.add(armR);
-    // кисти
-    var handL = new THREE.Mesh(new THREE.SphereGeometry(0.045,8,8), skinMat);
-    handL.position.set(-0.28, 0.75+0.02, 0.2);
-    g.add(handL);
-    var handR = new THREE.Mesh(new THREE.SphereGeometry(0.045,8,8), skinMat);
-    handR.position.set(0.28, 0.75+0.02, 0.2);
-    g.add(handR);
-
-    // шея + голова
-    var neck = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,0.07,8), skinMat);
-    neck.position.y = 0.75+0.55+0.03;
-    g.add(neck);
-    var head = new THREE.Mesh(new THREE.SphereGeometry(0.12,16,16), skinMat);
-    head.position.y = 0.75+0.55+0.15;
-    head.castShadow = true;
-    g.add(head);
-    // причёска
-    var hair = new THREE.Mesh(new THREE.SphereGeometry(0.125,16,16,0,Math.PI*2,0,Math.PI*0.55), hairMat);
-    hair.position.y = 0.75+0.55+0.17;
-    g.add(hair);
-
-    // бариста-кепка (опционально стильно)
-    var cap = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.11,0.06,16), apronMat);
-    cap.position.y = 0.75+0.55+0.24;
-    g.add(cap);
-
-    g.position.set(x,0,z);
-    g.rotation.y = rotY||0;
-    return g;
-  }
-  // бариста работают в проходе между задней и клиентской стойками,
-  // лицом к посетителям (в сторону входа, +Z)
-  room.add(buildBarista(-0.9, baristaZ, 0));
-  room.add(buildBarista(0.6, baristaZ, -0.15));
-
-  // напольные светильники-споты (акцент у стойки)
-  var spot = new THREE.SpotLight(0xffe3b0, 0.6, 6, Math.PI/6, 0.4);
-  spot.position.set(0, WALL_HEIGHT-0.1, backCounterZ+0.6);
-  spot.target.position.set(0, 1, backCounterZ);
-  spot.castShadow = true;
-  room.add(spot); room.add(spot.target);
-
-  // ---------- освещение сцены ----------
-  var ambient = new THREE.AmbientLight(0xfff1de, 0.55);
-  scene.add(ambient);
-  var dirLight = new THREE.DirectionalLight(0xfff4e0, 0.5);
-  dirLight.position.set(3,6,4);
-  dirLight.castShadow = true;
-  dirLight.shadow.mapSize.set(1024,1024);
-  scene.add(dirLight);
-  var fillLight = new THREE.DirectionalLight(0x99b7d9, 0.15);
-  fillLight.position.set(-4,3,-6);
-  scene.add(fillLight);
-
-  // мягкий свет "из холла" со стороны входа
-  var entranceLight = new THREE.PointLight(0xcfe0f2, 0.4, 8, 2);
-  entranceLight.position.set(0, 2, frontZ+1.5);
-  scene.add(entranceLight);
-
-  // ---------- анимация ----------
-  var clock = new THREE.Clock();
-  function animate(){
-    requestAnimationFrame(animate);
-    var t = clock.getElapsedTime();
-    pendants.forEach(function(p,i){
-      var flick = 1 + Math.sin(t*2+i)*0.02;
-      if(p.userData.light) p.userData.light.intensity = p.userData.light.userData_on!==false ? p.userData.baseIntensity * flick : 0;
-    });
-    if(autoRotate){
-      spherical.theta += 0.0025;
-      updateCameraFromSpherical();
-    }
-    renderer.render(scene, camera);
-  }
-
-  // сохраним базовую интенсивность для мерцания
-  pendants.forEach(function(p){
-    p.userData.baseIntensity = p.userData.light.intensity;
-  });
-
-  // ---------- UI кнопки ----------
-  function clearActive(){
-    document.querySelectorAll('#controls-panel button').forEach(function(b){b.classList.remove('active');});
-  }
-  function setOrbitButtonActive(){
-    clearActive();
-    document.getElementById('btn-orbit').classList.add('active');
-  }
-  document.getElementById('btn-orbit').addEventListener('click', function(){
-    setOrbitButtonActive();
-  });
-  document.getElementById('btn-front').addEventListener('click', function(){
-    clearActive(); this.classList.add('active');
-    spherical.theta = 0; spherical.phi = Math.PI*0.42; spherical.radius = 4.5;
-    target.set(0,1.3,counterZ); updateCameraFromSpherical();
-  });
-  document.getElementById('btn-top').addEventListener('click', function(){
-    clearActive(); this.classList.add('active');
-    spherical.theta = 0.001; spherical.phi = 0.2; spherical.radius = 5.5;
-    target.set(0,0,0); updateCameraFromSpherical();
-  });
-  document.getElementById('btn-side').addEventListener('click', function(){
-    clearActive(); this.classList.add('active');
-    spherical.theta = Math.PI/2; spherical.phi = Math.PI*0.4; spherical.radius = 4.5;
-    target.set(0,1.2,0); updateCameraFromSpherical();
-  });
-  var autoBtn = document.getElementById('btn-auto');
-  autoBtn.addEventListener('click', function(){
-    autoRotate = !autoRotate;
-    autoBtn.classList.toggle('active', autoRotate);
-  });
-  var timeBtn = document.getElementById('btn-time');
-  var isEvening = false;
-  timeBtn.addEventListener('click', function(){
-    isEvening = !isEvening;
-    timeBtn.textContent = isEvening ? 'День' : 'Вечер';
-    timeBtn.classList.toggle('active', isEvening);
-    if(isEvening){
-      scene.background = new THREE.Color(0x0b0805);
-      scene.fog.color = new THREE.Color(0x0b0805);
-      ambient.intensity = 0.18;
-      dirLight.intensity = 0.06;
-      entranceLight.intensity = 0.15;
-      pendants.forEach(function(p){ p.userData.baseIntensity = 1.3; });
     } else {
-      scene.background = new THREE.Color(0x1c130d);
-      scene.fog.color = new THREE.Color(0x1c130d);
-      ambient.intensity = 0.55;
-      dirLight.intensity = 0.5;
-      entranceLight.intensity = 0.4;
-      pendants.forEach(function(p){ p.userData.baseIntensity = 0.9; });
+
+        nextButton.textContent =
+            "Выбрать и дальше →";
+
     }
-  });
 
-  document.getElementById('loading').style.opacity = 0;
-  setTimeout(function(){ document.getElementById('loading').style.display='none'; }, 650);
 
-  animate();
+    updateSummary();
 
-})();
+}
+
+
+/* =========================================================
+   SELECT
+========================================================= */
+
+function selectOption(index) {
+
+    const component =
+        components[currentStep];
+
+    const option =
+        component.options[index];
+
+
+    const spent =
+        getSpent();
+
+    const old =
+        selected[currentStep];
+
+    const spentWithoutCurrent =
+        old
+            ? spent - old.price
+            : spent;
+
+
+    if (
+        spentWithoutCurrent + option.price >
+        BUDGET
+    ) {
+
+        alert(
+            "Эта деталь выходит за пределы бюджета."
+        );
+
+        return;
+
+    }
+
+
+    selected[currentStep] = option;
+
+
+    installVisual(component.id);
+
+
+    renderStep();
+
+    updateBudget();
+
+}
+
+
+/* =========================================================
+   INSTALL VISUAL
+========================================================= */
+
+function installVisual(id) {
+
+    if (id === "motherboard") {
+
+        document
+            .getElementById("visual-motherboard")
+            .classList.add("installed");
+
+    }
+
+
+    if (id === "cpu") {
+
+        document
+            .getElementById("visual-cpu")
+            .classList.add("installed");
+
+    }
+
+
+    if (id === "cooler") {
+
+        document
+            .getElementById("visual-cooler")
+            .classList.add("installed");
+
+    }
+
+
+    if (id === "ram") {
+
+        for (let i = 1; i <= 4; i++) {
+
+            document
+                .getElementById("visual-ram" + i)
+                .classList.add("installed");
+
+        }
+
+    }
+
+
+    if (id === "gpu") {
+
+        document
+            .getElementById("visual-gpu")
+            .classList.add("installed");
+
+    }
+
+
+    if (id === "ssd") {
+
+        document
+            .getElementById("visual-ssd")
+            .classList.add("installed");
+
+    }
+
+
+    if (id === "psu") {
+
+        document
+            .getElementById("visual-psu")
+            .classList.add("installed");
+
+    }
+
+}
+
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+function updateSummary() {
+
+    const box =
+        document.getElementById("summaryList");
+
+    box.innerHTML = "";
+
+
+    components.forEach((component, index) => {
+
+        const item =
+            selected[index];
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "summary-item";
+
+
+        row.innerHTML = `
+
+            <span>
+                ${component.title}
+            </span>
+
+            <span>
+                ${
+                    item
+                        ? money(item.price)
+                        : "—"
+                }
+            </span>
+
+        `;
+
+
+        box.appendChild(row);
+
+    });
+
+}
+
+
+/* =========================================================
+   NEXT
+========================================================= */
+
+function nextStep() {
+
+    if (!selected[currentStep]) {
+
+        alert(
+            "Сначала выберите комплектующее."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        currentStep <
+        components.length - 1
+    ) {
+
+        currentStep++;
+
+        renderStep();
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    } else {
+
+        finishGame();
+
+    }
+
+}
+
+
+/* =========================================================
+   PREVIOUS
+========================================================= */
+
+function previousStep() {
+
+    if (currentStep > 0) {
+
+        currentStep--;
+
+        renderStep();
+
+    }
+
+}
+
+
+/* =========================================================
+   FINISH
+========================================================= */
+
+function finishGame() {
+
+    const allSelected =
+        selected.every(item => item !== null);
+
+
+    if (!allSelected) {
+
+        alert(
+            "Выберите все комплектующие."
+        );
+
+        return;
+
+    }
+
+
+    const spent =
+        getSpent();
+
+    const remaining =
+        BUDGET - spent;
+
+
+    document.getElementById("spentResult")
+        .textContent =
+        money(spent);
+
+
+    document.getElementById("leftResult")
+        .textContent =
+        money(remaining);
+
+
+    /*
+        Игровая оценка.
+        Чем рациональнее использован бюджет,
+        тем выше оценка.
+    */
+
+    let score =
+        Math.round(
+            100 - (remaining / BUDGET) * 30
+        );
+
+
+    score =
+        Math.max(
+            70,
+            Math.min(100, score)
+        );
+
+
+    document.getElementById("scoreText")
+        .textContent =
+        `Игровая оценка: ${score} / 100`;
+
+
+    document.getElementById("stepCard")
+        .style.display = "none";
+
+
+    document.getElementById("final")
+        .classList.add("show");
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+/* =========================================================
+   POWER
+========================================================= */
+
+function powerOn() {
+
+    const pc =
+        document.getElementById("pcCase");
+
+    pc.classList.add("powered");
+
+
+    const button =
+        document.querySelector(".power-btn");
+
+    button.textContent =
+        "🟢 ПК ЗАПУЩЕН";
+
+}
+
+
+/* =========================================================
+   RESTART
+========================================================= */
+
+function restartGame() {
+
+    currentStep = 0;
+
+    selected =
+        new Array(components.length)
+        .fill(null);
+
+
+    document
+        .querySelectorAll(".part")
+        .forEach(part => {
+
+            part.classList.remove("installed");
+
+        });
+
+
+    document
+        .getElementById("pcCase")
+        .classList.remove("powered");
+
+
+    document.getElementById("stepCard")
+        .style.display = "block";
+
+
+    document.getElementById("final")
+        .classList.remove("show");
+
+
+    document.querySelector(".power-btn")
+        .textContent =
+        "⚡ Запустить ПК";
+
+
+    renderStep();
+
+    updateBudget();
+
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+function openTab(page, button) {
+
+    document
+        .querySelectorAll(".page")
+        .forEach(p => {
+
+            p.classList.remove("active");
+
+        });
+
+
+    document
+        .getElementById(page)
+        .classList.add("active");
+
+
+    document
+        .querySelectorAll(".tab")
+        .forEach(tab => {
+
+            tab.classList.remove("active");
+
+        });
+
+
+    button.classList.add("active");
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+renderStep();
+
+updateBudget();
+
 </script>
+
 </body>
 </html>
