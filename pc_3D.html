@@ -1,530 +1,201 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Конфигуратор Сборки ПК</title>
-    <style>
-        :root {
-            --bg-color: #0b0f19;
-            --panel-bg: rgba(22, 30, 46, 0.85);
-            --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
-            --success-color: #10b981;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --border-color: #334155;
-        }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Акции — сайт книги</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Manrope:wght@400;600;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F7FA;--card:#FFFFFF;--ink:#12182B;--mute:#5E667B;--line:#DDE1EA;--brand:#FF4B3E;--mark:#FFD84D;--up:#14A06B;--deep:#12182B;--onDeep:#F6F7FA;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0D1120;--card:#161C30;--ink:#F1F3F9;--mute:#9AA3BA;--line:#2A3250;--up:#35C98C;--deep:#050812;--onDeep:#F1F3F9;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0D1120;--card:#161C30;--ink:#F1F3F9;--mute:#9AA3BA;--line:#2A3250;--up:#35C98C;--deep:#050812;--onDeep:#F1F3F9;color-scheme:dark}
+html{scroll-behavior:smooth;scroll-padding-top:calc(76px + env(safe-area-inset-top,0px))}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 'Manrope',system-ui,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+h1,h2,h3{font-family:'Unbounded',sans-serif;margin:0;line-height:1.05}
+.hand{font-family:'Caveat','Segoe Script',cursive;font-weight:600;color:var(--brand)}
+section{padding:110px 0}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            user-select: none;
-        }
+/* nav */
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 90%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px;gap:16px}
+.logo{font:800 22px 'Unbounded',sans-serif;color:var(--brand);text-decoration:none;transform:rotate(-2deg);display:inline-block}
+nav ul{display:flex;gap:26px;list-style:none;margin:0;padding:0}
+nav a{color:var(--ink);text-decoration:none;font-weight:800;font-size:14px}
+nav ul a:hover{color:var(--brand)}
+nav .buy{background:var(--ink);color:var(--bg);padding:10px 20px;border-radius:30px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow: hidden;
-            width: 100vw;
-            height: 100vh;
-        }
+/* hero */
+.hero{padding:70px 0 40px;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(76px,19vw,230px);font-weight:800;color:var(--brand);letter-spacing:-.04em;transform:rotate(-3deg);transform-origin:left;filter:url(#rough);margin-top:20px}
+.by{font:800 15px 'Unbounded',sans-serif;transform:rotate(-3deg);margin:6px 0 0 8px}
+.hero p.sub{font-size:22px;max-width:25em;margin:56px 0 28px}
+.btn{display:inline-block;background:var(--brand);color:#fff;font:800 16px 'Unbounded',sans-serif;padding:18px 34px;border-radius:50px;text-decoration:none;border:0;cursor:pointer}
+.btn:hover{background:var(--ink)}
+.doodle{position:absolute;pointer-events:none}
+.d1{right:6%;top:40px;width:min(430px,44vw)}
+.d1 path.ln{stroke-dasharray:1100;stroke-dashoffset:1100;animation:draw 2.4s .3s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.note{position:absolute;font-size:28px;line-height:1.1;transform:rotate(-6deg)}
+.n1{right:3%;top:20px}.n2{right:28%;top:250px;transform:rotate(4deg)}
 
-        /* 3D Canvas */
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
+/* idea */
+.idea{background:var(--deep);color:var(--onDeep)}
+.idea h2{font-size:clamp(30px,5vw,54px);max-width:15em}
+.idea mark{background:var(--mark);color:#12182B;padding:0 .2em;border-radius:6px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:64px}
+.fact{border-top:3px solid var(--brand);padding-top:16px}
+.fact b{font:800 52px 'Unbounded',sans-serif;display:block;line-height:1}
+.fact span{opacity:.75;display:block;margin-top:10px;font-size:15px}
 
-        /* Интерфейс поверх 3D */
-        .ui-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 10;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 25px;
-        }
+/* chapters */
+.head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:46px}
+.head h2{font-size:clamp(30px,5vw,52px)}
+details{border-top:2px solid var(--ink)}
+details:last-of-type{border-bottom:2px solid var(--ink)}
+summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:90px 1fr 36px;align-items:center;gap:10px;padding:26px 0}
+summary::-webkit-details-marker{display:none}
+summary b{font:800 44px 'Unbounded',sans-serif;color:var(--brand)}
+summary span{font:800 clamp(19px,3vw,28px) 'Unbounded',sans-serif}
+summary::after{content:"+";font:500 36px 'Unbounded',sans-serif;transition:transform .25s;text-align:center}
+details[open] summary::after{transform:rotate(45deg)}
+summary:hover span{text-decoration:underline;text-decoration-color:var(--mark);text-decoration-thickness:5px}
+details .body{padding:0 0 30px 100px;max-width:48em;color:var(--mute)}
 
-        .header {
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            padding: 15px 25px;
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            pointer-events: auto;
-            max-width: 450px;
-        }
+/* book viewer */
+.peek{background:color-mix(in srgb,var(--brand) 10%,var(--bg))}
+.viewer{background:var(--card);border:2px solid var(--ink);border-radius:14px;box-shadow:10px 10px 0 var(--ink);overflow:hidden}
+.spread{display:none;grid-template-columns:1fr 1fr;min-height:430px}
+.spread.on{display:grid;animation:in .45s ease}
+@keyframes in{from{opacity:0;transform:translateX(24px)}}
+.pg{padding:44px 40px;position:relative}
+.pg+.pg{border-left:1px dashed var(--line)}
+.pg.dark{background:var(--deep);color:var(--onDeep)}
+.pg.red{background:var(--brand);color:#fff}
+.pg h3{font-size:30px;margin-bottom:18px}
+.big{font:800 190px/1 'Unbounded',sans-serif;opacity:.25;position:absolute;bottom:-10px;right:20px}
+.ln{height:10px;border-radius:5px;background:var(--line);margin:0 0 14px}
+.pq{font:800 22px/1.3 'Unbounded',sans-serif;border-left:6px solid var(--mark);padding-left:18px;margin:24px 0}
+.ctrl{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:40px}
+.ctrl button{width:52px;height:52px;border-radius:50%;border:2px solid var(--ink);background:var(--card);color:var(--ink);font-size:22px;cursor:pointer}
+.ctrl button:hover{background:var(--ink);color:var(--bg)}
+.dots{display:flex;gap:8px}.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--brand);width:30px;border-radius:6px}
 
-        .header h1 {
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+/* glossary */
+.chips{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:28px}
+.chips button{font:800 16px 'Manrope',sans-serif;padding:12px 22px;border-radius:40px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.bubble{background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:30px 34px;max-width:40em;position:relative;min-height:130px}
+.bubble b{font:800 24px 'Unbounded',sans-serif;display:block;margin-bottom:8px}
+.bubble::before{content:"";position:absolute;top:-14px;left:46px;width:24px;height:24px;background:var(--card);border-left:2px solid var(--ink);border-top:2px solid var(--ink);transform:rotate(45deg)}
 
-        .header p {
-            color: var(--text-sub);
-            font-size: 0.85rem;
-            margin-top: 4px;
-        }
+footer{background:var(--brand);color:#fff;text-align:center;padding:100px 24px 80px}
+footer h2{font-size:clamp(32px,6vw,64px);max-width:12em;margin:0 auto 30px}
+footer .btn{background:#12182B}
+footer p{margin:40px 0 0;opacity:.85;font-size:14px}
 
-        /* Боковая панель выбора */
-        .sidebar {
-            position: absolute;
-            right: 25px;
-            top: 25px;
-            bottom: 25px;
-            width: 380px;
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            pointer-events: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-
-        .step-indicator {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--accent-color);
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .step-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .options-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow-y: auto;
-            max-height: calc(100vh - 220px);
-            padding-right: 5px;
-        }
-
-        .option-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 12px 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .option-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--accent-color);
-            transform: translateX(-3px);
-        }
-
-        .option-card.selected {
-            border-color: var(--accent-color);
-            background: rgba(59, 130, 246, 0.15);
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-        }
-
-        .option-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .option-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .option-spec {
-            font-size: 0.75rem;
-            color: var(--text-sub);
-            margin-top: 2px;
-        }
-
-        .option-price {
-            font-weight: 700;
-            color: var(--success-color);
-            font-size: 0.9rem;
-        }
-
-        .footer-controls {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-next {
-            background: var(--accent-color);
-            color: white;
-        }
-
-        .btn-next:hover {
-            background: var(--accent-hover);
-        }
-
-        .btn-next:disabled {
-            background: #334155;
-            color: #64748b;
-            cursor: not-allowed;
-        }
-
-        .btn-power {
-            background: var(--success-color);
-            color: white;
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        /* Подсказка управления 3D */
-        .controls-hint {
-            position: absolute;
-            bottom: 25px;
-            left: 25px;
-            background: var(--panel-bg);
-            backdrop-filter: blur(12px);
-            padding: 10px 18px;
-            border-radius: 30px;
-            border: 1px solid var(--border-color);
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            pointer-events: auto;
-        }
-    </style>
-    <!-- Three.js и OrbitControls -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+@media (max-width:760px){
+ nav ul{display:none}
+ section{padding:72px 0}
+ .doodle,.note{display:none}
+ .hero p.sub{margin-top:36px}
+ .facts{grid-template-columns:1fr}
+ summary{grid-template-columns:56px 1fr 30px}summary b{font-size:30px}
+ details .body{padding-left:0}
+ .spread{grid-template-columns:1fr;min-height:0}.pg+.pg{border-left:0;border-top:1px dashed var(--line)}
+ .pg{padding:32px 24px}.big{font-size:130px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.d1 path.ln{animation:none;stroke-dashoffset:0}.spread.on{animation:none}}
+</style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="5"/></filter></svg>
 
-    <div id="canvas-container"></div>
+<nav><div class="wrap">
+  <a class="logo" href="#top">АКЦИИ</a>
+  <ul><li><a href="#idea">О книге</a></li><li><a href="#chapters">Главы</a></li><li><a href="#peek">Полистать</a></li><li><a href="#terms">Словарь</a></li></ul>
+  <a class="buy" href="#end">Читать</a>
+</div></nav>
 
-    <div class="ui-overlay">
-        <div class="header">
-            <h1>🖥️ 3D Конфигуратор ПК</h1>
-            <p>Вращайте модель мышкой для полного обзора</p>
-        </div>
+<header class="hero" id="top"><div class="wrap" style="position:relative">
+  <svg class="doodle d1" viewBox="0 0 430 260" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M10 250H420M10 250V10" stroke="var(--ink)" stroke-width="3"/>
+    <path class="ln" d="M20 200 60 170 90 190 140 120 175 150 230 70 265 95 320 40 355 80 410 25" stroke="var(--up)" stroke-width="7"/>
+    <circle cx="410" cy="25" r="11" fill="var(--mark)" stroke="var(--ink)" stroke-width="3"/>
+  </svg>
+  <span class="hand note n1">вот сюда<br>мы придём</span>
+  <span class="hand note n2">а вдруг упадёт?</span>
+  <h1>АКЦИИ</h1>
+  <p class="by">КНИГА О БИРЖЕ · АВТОР: ИМЯ ФАМИЛИЯ</p>
+  <p class="sub">Здесь будет короткий слоган: одна мысль о том, зачем читателю эта книга и что он поймёт к последней странице.</p>
+  <a class="btn" href="#chapters">Начать читать</a>
+</div></header>
 
-        <div class="controls-hint">
-            🖱️ Левая кнопка — вращение | Колесико — зум
-        </div>
+<section class="idea" id="idea"><div class="wrap">
+  <h2>Здесь будет главная идея книги: <mark>без страха и сложных слов</mark>, шаг за шагом.</h2>
+  <div class="facts">
+    <div class="fact"><b>5</b><span>глав: от первой покупки до первого портфеля</span></div>
+    <div class="fact"><b>120</b><span>страниц примеров, схем и историй</span></div>
+    <div class="fact"><b>30</b><span>терминов, объяснённых простыми словами</span></div>
+  </div>
+</div></section>
 
-        <div class="sidebar">
-            <div>
-                <div class="step-indicator" id="stepIndicator">Шаг 1 из 6</div>
-                <div class="step-title" id="stepTitle">Выберите Процессор (CPU)</div>
-                <div class="options-grid" id="optionsGrid">
-                    <!-- Заполняется динамически -->
-                </div>
-            </div>
+<section id="chapters"><div class="wrap">
+  <div class="head"><h2>Главы</h2><span class="hand" style="font-size:30px">нажми, чтобы заглянуть</span></div>
+  <details open><summary><b>1</b><span>Что такое акция</span></summary><div class="body">Здесь будет короткий анонс главы на 2–3 строки. Он должен обещать читателю ответ на вопрос.</div></details>
+  <details><summary><b>2</b><span>Как работает биржа</span></summary><div class="body">Здесь будет короткий анонс второй главы.</div></details>
+  <details><summary><b>3</b><span>Рынок растёт и падает</span></summary><div class="body">Здесь будет короткий анонс третьей главы.</div></details>
+  <details><summary><b>4</b><span>Первая покупка</span></summary><div class="body">Здесь будет короткий анонс четвёртой главы.</div></details>
+  <details><summary><b>5</b><span>Ошибки новичков</span></summary><div class="body">Здесь будет короткий анонс пятой главы.</div></details>
+</div></section>
 
-            <div class="footer-controls">
-                <button class="btn btn-next" id="nextBtn" disabled onclick="nextStep()">Далее ➔</button>
-            </div>
-        </div>
+<section class="peek" id="peek"><div class="wrap">
+  <div class="head"><h2>Полистать</h2><span class="hand" style="font-size:30px">так выглядят страницы</span></div>
+  <div class="viewer" id="viewer">
+    <div class="spread on">
+      <div class="pg red"><h3>Глава 1</h3><p>Здесь будет вступление к главе: одна яркая фраза.</p><span class="big">1</span></div>
+      <div class="pg"><h3>Что такое акция</h3><div class="ln" style="width:100%"></div><div class="ln" style="width:92%"></div><div class="ln" style="width:97%"></div><div class="ln" style="width:60%"></div><div class="pq">Здесь будет главная мысль страницы.</div><div class="ln" style="width:95%"></div><div class="ln" style="width:70%"></div></div>
     </div>
+    <div class="spread">
+      <div class="pg"><h3>Цифры</h3><svg viewBox="0 0 300 160" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" style="width:100%"><path d="M0 150H300" stroke="var(--line)"/><path d="M5 130 50 110 90 120 140 70 190 90 240 30 295 15" stroke="var(--up)"/></svg><div class="ln" style="width:90%"></div><div class="ln" style="width:75%"></div></div>
+      <div class="pg dark"><h3>Запомните</h3><p>Здесь будет вывод в одну-две строки: то, что читатель унесёт из раздела.</p><div class="pq" style="border-color:var(--brand)">+12%</div></div>
+    </div>
+    <div class="spread">
+      <div class="pg"><h3>Шаги</h3><div class="ln" style="width:80%"></div><div class="ln" style="width:90%"></div><div class="ln" style="width:70%"></div><div class="ln" style="width:85%"></div></div>
+      <div class="pg red"><h3>Что дальше?</h3><p>Страница заканчивается вопросом, ответ на который в следующей главе.</p><span class="big">?</span></div>
+    </div>
+  </div>
+  <div class="ctrl"><button id="prev" aria-label="Назад">←</button><div class="dots"><i class="on"></i><i></i><i></i></div><button id="next" aria-label="Вперёд">→</button></div>
+</div></section>
 
-    <script>
-        // --- 1. Настройка 3D Сцены (Three.js) ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x0b0f19, 0.08);
+<section id="terms"><div class="wrap">
+  <div class="head"><h2>Словарь</h2><span class="hand" style="font-size:30px">без занудства</span></div>
+  <div class="chips" id="chips"></div>
+  <div class="bubble" id="bubble"></div>
+</div></section>
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(3, 2, 4);
+<footer id="end">
+  <h2>Первая глава уже ждёт тебя</h2>
+  <a class="btn" href="#chapters">Читать главу 1</a>
+  <p>© Имя Фамилия, 2026. Это макет: тексты заменим на настоящие.</p>
+</footer>
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.shadowMap.enabled = true;
-        container.appendChild(renderer.domElement);
-
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.maxPolarAngle = Math.PI / 2 + 0.1;
-
-        // Освещение
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        dirLight.position.set(5, 10, 7);
-        dirLight.castShadow = true;
-        scene.add(dirLight);
-
-        const caseLight = new THREE.PointLight(0x3b82f6, 0, 5); // Подсветка корпуса (RGB)
-        caseLight.position.set(0, 0, 0);
-        scene.add(caseLight);
-
-        // --- 2. Создание моделей деталей (Procedural 3D) ---
-        const parts = {};
-
-        // Корпус ПК (Case)
-        const caseGroup = new THREE.Group();
-        const caseGeo = new THREE.BoxGeometry(1.6, 2.2, 2.0);
-        const caseMat = new THREE.MeshStandardMaterial({ color: 0x111827, wireframe: false, transparent: true, opacity: 0.3 });
-        const pcCase = new THREE.Mesh(caseGeo, caseMat);
-        caseGroup.add(pcCase);
-
-        // Каркас корпуса
-        const frameGeo = new THREE.BoxGeometry(1.62, 2.22, 2.02);
-        const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, wireframe: true });
-        caseGroup.add(new THREE.Mesh(frameGeo, frameMat));
-        scene.add(caseGroup);
-
-        // Материнская плата
-        const mbGeo = new THREE.BoxGeometry(0.1, 1.8, 1.4);
-        const mbMat = new THREE.MeshStandardMaterial({ color: 0x064e3b });
-        const motherboard = new THREE.Mesh(mbGeo, mbMat);
-        motherboard.position.set(-0.7, 0, 0);
-        caseGroup.add(motherboard);
-
-        // Создаем заготовки для компонентов
-        function createPartMesh(geo, color) {
-            const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.3, metalness: 0.5 });
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.visible = false;
-            caseGroup.add(mesh);
-            return mesh;
-        }
-
-        parts.cpu = createPartMesh(new THREE.BoxGeometry(0.05, 0.3, 0.3), 0x94a3b8);
-        parts.cpu.position.set(-0.63, 0.3, 0);
-
-        parts.cooler = createPartMesh(new THREE.BoxGeometry(0.3, 0.4, 0.4), 0x38bdf8);
-        parts.cooler.position.set(-0.45, 0.3, 0);
-
-        parts.ram = createPartMesh(new THREE.BoxGeometry(0.05, 0.4, 0.08), 0xec4899);
-        parts.ram.position.set(-0.63, 0.3, 0.3);
-
-        parts.ssd = createPartMesh(new THREE.BoxGeometry(0.02, 0.1, 0.3), 0xeab308);
-        parts.ssd.position.set(-0.63, -0.2, 0.2);
-
-        parts.gpu = createPartMesh(new THREE.BoxGeometry(0.8, 0.3, 1.1), 0x6366f1);
-        parts.gpu.position.set(-0.2, -0.3, 0);
-
-        parts.psu = createPartMesh(new THREE.BoxGeometry(0.6, 0.5, 0.8), 0x334155);
-        parts.psu.position.set(-0.4, -0.75, -0.4);
-
-
-        // --- 3. Данные шагов и вариантов (По 4 варианта!) ---
-        const steps = [
-            {
-                title: "Выберите Процессор (CPU)",
-                partKey: "cpu",
-                options: [
-                    { name: "Intel Core i5-13400F", spec: "10 ядер / 16 потоков", price: "$200" },
-                    { name: "AMD Ryzen 5 7600X", spec: "6 ядер / 12 потоков", price: "$240" },
-                    { name: "Intel Core i7-13700K", spec: "16 ядер / 24 потока", price: "$380" },
-                    { name: "AMD Ryzen 7 7800X3D", spec: "8 ядер / Топ для игр", price: "$450" }
-                ]
-            },
-            {
-                title: "Система охлаждения (Cooler)",
-                partKey: "cooler",
-                options: [
-                    { name: "DeepCool AG400", spec: "Воздушное / 220W TDP", price: "$30" },
-                    { name: "be quiet! Dark Rock 4", spec: "Тихое башенное", price: "$75" },
-                    { name: "NZXT Kraken 240", spec: "СВО Водяное 240мм", price: "$140" },
-                    { name: "ASUS ROG Strix LC III", spec: "СВО Premium RGB 360мм", price: "$220" }
-                ]
-            },
-            {
-                title: "Оперативная память (RAM)",
-                partKey: "ram",
-                options: [
-                    { name: "Kingston Fury 16GB", spec: "DDR5 5200MHz", price: "$65" },
-                    { name: "G.Skill Ripjaws 32GB", spec: "DDR5 6000MHz", price: "$110" },
-                    { name: "Corsair Vengeance 32GB", spec: "DDR5 RGB 6400MHz", price: "$140" },
-                    { name: "G.Skill Trident Z5 64GB", spec: "DDR5 Extreme 7200MHz", price: "$260" }
-                ]
-            },
-            {
-                title: "Накопитель (SSD M.2)",
-                partKey: "ssd",
-                options: [
-                    { name: "Kingston NV2 500GB", spec: "PCIe 4.0 / 3500 MB/s", price: "$45" },
-                    { name: "Samsung 980 1TB", spec: "PCIe 3.0 / 3500 MB/s", price: "$80" },
-                    { name: "WD Black SN850X 1TB", spec: "PCIe 4.0 / 7300 MB/s", price: "$110" },
-                    { name: "Samsung 990 PRO 2TB", spec: "Флагман / 7450 MB/s", price: "$180" }
-                ]
-            },
-            {
-                title: "Видеокарта (GPU)",
-                partKey: "gpu",
-                options: [
-                    { name: "NVIDIA RTX 4060 8GB", spec: "Базовый 1080p гейминг", price: "$300" },
-                    { name: "AMD Radeon RX 7700 XT", spec: "Отличный 1440p", price: "$420" },
-                    { name: "NVIDIA RTX 4070 Ti Super", spec: "Мощный 2K/4K гейминг", price: "$800" },
-                    { name: "NVIDIA RTX 4090 24GB", spec: "Максимальная мощность", price: "$1800" }
-                ]
-            },
-            {
-                title: "Блок питания (PSU)",
-                partKey: "psu",
-                options: [
-                    { name: "DeepCool PK650D", spec: "650W / 80+ Bronze", price: "$60" },
-                    { name: "Corsair RM750x", spec: "750W / 80+ Gold Modular", price: "$120" },
-                    { name: "be quiet! Straight Power 850W", spec: "850W Platinum", price: "$170" },
-                    { name: "ASUS ROG Thor 1000W", spec: "1000W Platinum OLED", price: "$320" }
-                ]
-            }
-        ];
-
-        let currentStep = 0;
-        let selectedOption = null;
-
-        // --- 4. Логика интерфейса ---
-        function renderStep() {
-            const step = steps[currentStep];
-            document.getElementById('stepIndicator').innerText = `Шаг ${currentStep + 1} из ${steps.length}`;
-            document.getElementById('stepTitle').innerText = step.title;
-
-            const grid = document.getElementById('optionsGrid');
-            grid.innerHTML = '';
-
-            step.options.forEach((opt, idx) => {
-                const card = document.createElement('div');
-                card.className = 'option-card';
-                card.innerHTML = `
-                    <div class="option-info">
-                        <div class="option-name">${opt.name}</div>
-                        <div class="option-spec">${opt.spec}</div>
-                    </div>
-                    <div class="option-price">${opt.price}</div>
-                `;
-                card.onclick = () => selectOption(card, opt);
-                grid.appendChild(card);
-            });
-
-            document.getElementById('nextBtn').disabled = true;
-        }
-
-        function selectOption(cardElement, option) {
-            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
-            cardElement.classList.add('selected');
-            selectedOption = option;
-            document.getElementById('nextBtn').disabled = false;
-        }
-
-        function nextStep() {
-            const step = steps[currentStep];
-            const mesh = parts[step.partKey];
-
-            // Анимация появления детали
-            mesh.visible = true;
-            mesh.scale.set(0, 0, 0);
-            
-            let scale = 0;
-            const anim = setInterval(() => {
-                scale += 0.1;
-                mesh.scale.set(scale, scale, scale);
-                if (scale >= 1) clearInterval(anim);
-            }, 20);
-
-            currentStep++;
-
-            if (currentStep < steps.length) {
-                renderStep();
-            } else {
-                showFinal();
-            }
-        }
-
-        function showFinal() {
-            document.getElementById('stepIndicator').innerText = "Сборка завершена!";
-            document.getElementById('stepTitle').innerText = "🎉 ПК полностью собран!";
-            document.getElementById('optionsGrid').innerHTML = `
-                <div style="color: var(--text-sub); font-size: 0.9rem; line-height: 1.5;">
-                    Все выбранные компоненты идеально совместимы и успешно смонтированы в корпус.
-                </div>
-            `;
-
-            const btn = document.getElementById('nextBtn');
-            btn.innerText = "⚡ Запустить ПК";
-            btn.className = "btn btn-power";
-            btn.disabled = false;
-            btn.onclick = powerOn;
-        }
-
-        function powerOn() {
-            // Эффект включения RGB подсветки в 3D
-            let intensity = 0;
-            const pwrAnim = setInterval(() => {
-                intensity += 0.2;
-                caseLight.intensity = intensity;
-                if (intensity >= 3) clearInterval(pwrAnim);
-            }, 50);
-
-            // Анимация плавного изменения цвета подсветки
-            let hue = 0;
-            setInterval(() => {
-                hue = (hue + 1) % 360;
-                caseLight.color.setHSL(hue / 360, 1, 0.5);
-            }, 30);
-
-            alert("🚀 Компьютер успешно запущен! Система охлаждения и RGB-подсветка работают на 100%.");
-        }
-
-        // --- 5. Анимационный цикл THREE.JS ---
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-
-            // Плавное медленное вращение корпуса для эффекта демонстрации
-            caseGroup.rotation.y += 0.003;
-
-            renderer.render(scene, camera);
-        }
-
-        // Адаптивность при изменении размера окна
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Старт
-        renderStep();
-        animate();
-    </script>
+<script>
+(function(){
+ var sp=[].slice.call(document.querySelectorAll('.spread')),dots=[].slice.call(document.querySelectorAll('.dots i')),k=0;
+ function go(n){k=(n+sp.length)%sp.length;sp.forEach(function(s,i){s.classList.toggle('on',i===k)});dots.forEach(function(d,i){d.classList.toggle('on',i===k)})}
+ document.getElementById('prev').onclick=function(){go(k-1)};
+ document.getElementById('next').onclick=function(){go(k+1)};
+ var T=[['Акция','Здесь будет определение: доля в компании, которую можно купить и продать.'],['Дивиденд','Здесь будет определение: часть прибыли, которую компания платит владельцам акций.'],['Брокер','Здесь будет определение: посредник, через которого вы покупаете акции.'],['Индекс','Здесь будет определение: число, которое показывает, как живёт целый рынок.'],['Портфель','Здесь будет определение: всё, что вы купили, собранное вместе.']],
+ c=document.getElementById('chips'),b=document.getElementById('bubble');
+ function show(i){[].forEach.call(c.children,function(x,j){x.setAttribute('aria-pressed',j===i)});b.innerHTML='<b>'+T[i][0]+'</b>'+T[i][1]}
+ T.forEach(function(t,i){var x=document.createElement('button');x.textContent=t[0];x.onclick=function(){show(i)};c.appendChild(x)});
+ show(0);
+})();
+</script>
 </body>
 </html>
